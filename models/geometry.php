@@ -1,5 +1,5 @@
  <?php
- include("models/location.php");
+ include("location.php");
  
  class Geometry {
     static $google_api_key = 'AIzaSyBHfx31ShSJ07tKLT9W-YcmR5DCTKtcdSI';
