@@ -54,13 +54,12 @@ class USER
 
     static function adduser($email, $password)
     {
-        if (USER::checkemail($email) === true) {
-            return false;
-        }
         $r = false;
-
         $sql = "INSERT INTO users (email, password, lastlogin) VALUES (?,?, UNIX_TIMESTAMP())";
 
+        if (USER::checkemail($email) === true) {
+            return $r;
+        }
         if($stmt = mysqli_prepare($link, $sql)) {
             mysqli_stmt_bind_param($stmt, "ss", $email, $password);
             if(mysqli_stmt_execute($stmt)){
@@ -72,7 +71,7 @@ class USER
             mysqli_stmt_close($stmt);
         }
         else {
-            echo("Error description: " . $mysqli->error);
+            echo("Error description: " . mysqli_errno($link));
             $r = false;
         }
         mysqli_close($link);
