@@ -72,7 +72,7 @@ class USER
             mysqli_stmt_close($stmt);
         }
         else {
-            echo("Error description: " . mysqli_error($link));
+            echo("Error description: " . $mysqli->error);
             $r = false;
         }
         mysqli_close($link);
