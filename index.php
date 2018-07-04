@@ -16,7 +16,7 @@ if(isset($req['a'])) {
             }
         break;
         case 'ur':// user register
-            if (USER::adduser($req['e'], $req['p']) === true) {
+            if (USER::adduser($req['e'], $req['p'], $req['n']) === true) {
                 $response['ret'] = '0';
             }
             else {

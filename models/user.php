@@ -51,17 +51,17 @@ class USER
         return $r;
     }
 
-    static function adduser($email, $password)
+    static function adduser($email, $password, $name)
     {
         $r = false;
-        $sql = "INSERT INTO users (email, password, created_at, lastlogin) VALUES (?,?, UNIX_TIMESTAMP(), UNIX_TIMESTAMP())";
+        $sql = "INSERT INTO users (email, password, name, created_at, lastlogin) VALUES (?,?,?,UNIX_TIMESTAMP(), UNIX_TIMESTAMP())";
 
         if (USER::checkemail($email) === true) {
             return $r;
         }
         require __DIR__ ."/../config.php";
         if($stmt = mysqli_prepare($link, $sql)) {
-            mysqli_stmt_bind_param($stmt, "ss", $email, $password);
+            mysqli_stmt_bind_param($stmt, "sss", $email, $password, $name);
             if(mysqli_stmt_execute($stmt)){
                 $r = true;
             }
