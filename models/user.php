@@ -1,5 +1,4 @@
 <?php
-require_once __DIR__ ."/../config.php";
 
 class USER
 {
@@ -7,7 +6,7 @@ class USER
     static function checkuser($email, $password) {
         $sql = "SELECT * FROM users WHERE email = ? AND password = ?";
         $r = false;
-        require_once __DIR__ ."/../config.php";
+        require __DIR__ ."/../config.php";
         if($stmt = mysqli_prepare($link, $sql)) {
             // Bind variables to the prepared statement as parameters
             mysqli_stmt_bind_param($stmt, "ss", $email, $password);
@@ -31,7 +30,7 @@ class USER
     static function checkemail($email) {
         $sql = "SELECT * FROM users WHERE email = ?";
         $r = false;
-        require_once __DIR__ ."/../config.php";
+        require __DIR__ ."/../config.php";
         if($stmt = mysqli_prepare($link, $sql)) {
             // Bind variables to the prepared statement as parameters
             mysqli_stmt_bind_param($stmt, "s", $email);
@@ -55,12 +54,12 @@ class USER
     static function adduser($email, $password)
     {
         $r = false;
-        $sql = "INSERT INTO users (email, password, lastlogin) VALUES (?,?, UNIX_TIMESTAMP())";
+        $sql = "INSERT INTO users (email, password, created_at, lastlogin) VALUES (?,?, UNIX_TIMESTAMP(), UNIX_TIMESTAMP())";
 
         if (USER::checkemail($email) === true) {
             return $r;
         }
-        require_once __DIR__ ."/../config.php";
+        require __DIR__ ."/../config.php";
         if($stmt = mysqli_prepare($link, $sql)) {
             mysqli_stmt_bind_param($stmt, "ss", $email, $password);
             if(mysqli_stmt_execute($stmt)){
