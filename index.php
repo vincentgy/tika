@@ -1,6 +1,7 @@
 <?php
 include_once "./models/user.php";
 include_once "./models/geometry.php";
+include_once "./models/job.php";
 
 $req = json_decode($_POST["param"], true);
 
@@ -18,6 +19,16 @@ if(isset($req['a'])) {
         case 'ur':// user register
             if (USER::adduser($req['e'], $req['p'], $req['n']) === true) {
                 $response['ret'] = '0';
+            }
+            else {
+                $response['ret'] = '1';
+            }
+        break;
+        case 'jl':// job list
+            $categories = JOB::getcategories();
+            if ($address !== false) {
+                $response['ret'] = '0';
+                $response['data'] = json_encode($categories);
             }
             else {
                 $response['ret'] = '1';
