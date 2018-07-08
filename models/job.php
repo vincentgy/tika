@@ -8,7 +8,7 @@ class JOB
         $rows = [];
         require __DIR__ ."/../config.php";
         if($result = mysqli_query($link, $sql)) {
-            while ($row=mysqli_fetch_row($result, MYSQLI_ASSOC)) {
+            while ($row=mysqli_fetch_assoc($result)) {
                 $rows[] = $row;
             }
             // Free result set
