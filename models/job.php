@@ -17,4 +17,5 @@ class JOB
         mysqli_close($link);
         return $rows;
     }
+}
 ?>
