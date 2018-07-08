@@ -24,7 +24,7 @@ if(isset($req['a'])) {
                 $response['ret'] = '1';
             }
         break;
-        case 'jl':// job list
+        case 'jc':// job categories
             $categories = JOB::getcategories();
             if ($address !== false) {
                 $response['ret'] = '0';
