@@ -3,9 +3,8 @@ include_once "./models/user.php";
 include_once "./models/geometry.php";
 include_once "./models/job.php";
 
-$_POST = json_decode(file_get_contents('php://input'), true);
-$req = json_decode($_POST["param"], true);
 error_log(print_r($_POST));
+$req = json_decode($_POST["param"], true);
 
 $response = array();
 if(isset($req['a'])) {
@@ -47,6 +46,7 @@ if(isset($req['a'])) {
             }
         break;
     default:
+        $response['ret'] = '-1';
    }
 }
 else {
