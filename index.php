@@ -5,6 +5,7 @@ include_once "./models/job.php";
 
 $response = array();
 $data = json_decode(file_get_contents('php://input'));
+error_log(print_r($data));
 $req = $data["param"];
 
 if(isset($req['a'])) {
