@@ -3,7 +3,7 @@ include_once "./models/user.php";
 include_once "./models/geometry.php";
 include_once "./models/job.php";
 
-error_log(print_r($_POST, true)));
+error_log(print_r($_POST, true));
 $req = json_decode($_POST["param"], true);
 
 $response = array();
