@@ -4,7 +4,7 @@ include_once "./models/geometry.php";
 include_once "./models/job.php";
 
 $response = array();
-$data = json_decode(file_get_contents('php://input'));
+$data = json_decode(file_get_contents('php://input'), true);
 error_log(print_r($data));
 $req = $data["param"];
 
