@@ -3,7 +3,9 @@ include_once "./models/user.php";
 include_once "./models/geometry.php";
 include_once "./models/job.php";
 
+$_POST = json_decode(file_get_contents('php://input'), true);
 $req = json_decode($_POST["param"], true);
+error_log(print_r($_POST));
 
 $response = array();
 if(isset($req['a'])) {
@@ -26,7 +28,7 @@ if(isset($req['a'])) {
         break;
         case 'jc':// job categories
             $categories = JOB::getcategories();
-            if ($address !== false) {
+            if ($categories !== false) {
                 $response['ret'] = '0';
                 $response['data'] = json_encode($categories);
             }
