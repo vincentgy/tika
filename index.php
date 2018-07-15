@@ -19,11 +19,18 @@ if(isset($req['a'])) {
             }
         break;
         case 'ur':// user register
-            if (USER::adduser($req['e'], $req['p'], $req['n']) === true) {
-                $response['ret'] = 0;
+            if (isset($req['e']) === false ||
+                isset($req['p']) === false ||
+                isset($req['n']) === false) {
+                    $response['ret'] = -2;
             }
             else {
-                $response['ret'] = 1;
+                if (USER::adduser($req['e'], $req['p'], $req['n']) === true) {
+                    $response['ret'] = 0;
+                }
+                else {
+                    $response['ret'] = 1;
+                }
             }
         break;
         case 'jc':// job categories
@@ -34,6 +41,31 @@ if(isset($req['a'])) {
             }
             else {
                 $response['ret'] = 1;
+            }
+        break;
+        case 'lr':// list regions
+            $regions = isset($req['c']) ? JOB::getregionsbycountrycode($req['c']) : JOB::getregionsbycountrycode();
+            if ($regions !== false) {
+                $response['ret'] = 0;
+                $response['data'] = json_encode($regions);
+            }
+            else {
+                $response['ret'] = 1;
+            }
+        break;
+        case 'ld':// get regions
+            if (isset($req['r']) === false) {
+                $response['ret'] = -2;
+            }
+            else {
+                $districts = JOB::getdistrictsbyregion($req['r']);
+                if ($districts !== false) {
+                    $response['ret'] = 0;
+                    $response['data'] = json_encode($districts);
+                }
+                else {
+                    $response['ret'] = 1;
+                }
             }
         break;
         case 'cl':// current location
