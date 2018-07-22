@@ -59,5 +59,63 @@ class JOB
         mysqli_close($link);
         return $rows;
     }
+
+    static function addjobcategory($job_id, $category_id)
+    {
+        $r = false;
+        $sql = "INSERT INTO position_category (position_id, category_id) VALUES (?,?)";
+
+        require __DIR__ ."/../config.php";
+        if($stmt = mysqli_prepare($link, $sql)) {
+            mysqli_stmt_bind_param($stmt, "ii", $job_id, $category_id);
+            if(mysqli_stmt_execute($stmt)){
+                $r = true;
+            }
+            else {
+                $r = false;
+            }
+            mysqli_stmt_close($stmt);
+        }
+        else {
+            echo("Error description: " . mysqli_error($link));
+            $r = false;
+        }
+        mysqli_close($link);
+        return $r;
+    }
+
+    static function addjob($title, $user_id, $type, $pay_type, $minimum_pay, $maxmum_pay, $number, $region_id, $district_id, $location, $categories)
+    {
+        $r = false;
+        $maxmum_pay = is_null($maxmum_pay) ? $minimum_pay : $maxmum_pay;
+        $number = is_null($number) ? 1 : $number;
+
+        $sql = "INSERT INTO positions (title, user_id, type, pay_type, minimum_pay, maximum_pay, numbers, region_id, district_id, location, timestamp) VALUES (?,?,?,?,?,?,?,?,?,?,UNIX_TIMESTAMP())";
+
+        if (USER::checkuserid($user_id) === false) {
+            return $r;
+        }
+        require __DIR__ ."/../config.php";
+        if($stmt = mysqli_prepare($link, $sql)) {
+            mysqli_stmt_bind_param($stmt, "siiiiiiiis", $title, $user_id, $type, $pay_type, $minimum_pay, $maxmum_pay, $number, $region_id, $district_id, $location);
+            if(mysqli_stmt_execute($stmt)){
+                $r = true;
+                $jid = mysqli_insert_id($link);
+                for ($i = 0; $i < count($categories); $i++) {
+                    JOB::addjobcategory($jid, $categories[$i]);
+                }
+            }
+            else {
+                $r = false;
+            }
+            mysqli_stmt_close($stmt);
+        }
+        else {
+            echo("Error description: " . mysqli_error($link));
+            $r = false;
+        }
+        mysqli_close($link);
+        return $r;
+    }
 }
 ?>

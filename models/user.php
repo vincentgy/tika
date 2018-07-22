@@ -36,7 +36,31 @@ class USER
             mysqli_stmt_bind_param($stmt, "s", $email);
             if(mysqli_stmt_execute($stmt)) {
                 mysqli_stmt_store_result($stmt);
-                
+
+                if(mysqli_stmt_num_rows($stmt) == 1) {
+                    mysqli_stmt_close($stmt);
+                    $r = true;
+                }
+            }
+            else {
+                echo("Error description: " . mysqli_error($link));
+                mysqli_stmt_close($stmt);
+            }
+        }
+        mysqli_close($link);
+        return $r;
+    }
+
+    static function checkuserid($user_id) {
+        $sql = "SELECT * FROM users WHERE id = ?";
+        $r = false;
+        require __DIR__ ."/../config.php";
+        if($stmt = mysqli_prepare($link, $sql)) {
+            // Bind variables to the prepared statement as parameters
+            mysqli_stmt_bind_param($stmt, "i", $user_id);
+            if(mysqli_stmt_execute($stmt)) {
+                mysqli_stmt_store_result($stmt);
+
                 if(mysqli_stmt_num_rows($stmt) == 1) {
                     mysqli_stmt_close($stmt);
                     $r = true;

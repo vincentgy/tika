@@ -68,6 +68,29 @@ if(isset($req['a'])) {
                 }
             }
         break;
+        case 'pj':// post job
+            if (isset($req['title']) === false ||
+                isset($req['user']) === false  ||
+                isset($req['category']) === false  ||
+                isset($req['type']) === false  ||
+                isset($req['paytype']) === false ||
+                isset($req['minimumpay']) === false ||
+                isset($req['region']) === false ||
+                isset($req['district']) === false ||
+                ) {
+                $response['ret'] = -2;
+            }
+            else {
+                $districts = JOB::addjob($req['r']);
+                if ($districts !== false) {
+                    $response['ret'] = 0;
+                    $response['data'] = json_encode($districts);
+                }
+                else {
+                    $response['ret'] = 1;
+                }
+            }
+        break;
         case 'cl':// current location
             $address = Geometry::covertToAddress($req['lat'], $req['lng']);
             if ($address !== false) {
