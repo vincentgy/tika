@@ -70,21 +70,20 @@ if(isset($req['a'])) {
         break;
         case 'pj':// post job
             if (isset($req['title']) === false ||
-                isset($req['user']) === false  ||
-                isset($req['category']) === false  ||
+                isset($req['user_id']) === false  ||
+                isset($req['categories']) === false  ||
                 isset($req['type']) === false  ||
-                isset($req['paytype']) === false ||
-                isset($req['minimumpay']) === false ||
-                isset($req['region']) === false ||
-                isset($req['district']) === false ||
+                isset($req['pay_type']) === false ||
+                isset($req['minimum_pay']) === false ||
+                isset($req['region_id']) === false ||
+                isset($req['district_id']) === false ||
                 ) {
                 $response['ret'] = -2;
             }
             else {
-                $districts = JOB::addjob($req['r']);
-                if ($districts !== false) {
+                $r = JOB::addjob($req['title'], $req['user_id'], $req['type'], $req['pay_type'], $req['minimum_pay'], $req['maximum_pay'], $req['number'], $req['region_id']), $req['district_id'], $req['location'], $req['categories']);
+                if ($r !== false) {
                     $response['ret'] = 0;
-                    $response['data'] = json_encode($districts);
                 }
                 else {
                     $response['ret'] = 1;

@@ -84,7 +84,7 @@ class JOB
         return $r;
     }
 
-    static function addjob($title, $user_id, $type, $pay_type, $minimum_pay, $maxmum_pay, $number, $region_id, $district_id, $location, $categories)
+    static function addjob($title, $user_id, $type, $pay_type, $minimum_pay, $maximum_pay, $number, $region_id, $district_id, $location, $categories)
     {
         $r = false;
         $maxmum_pay = is_null($maxmum_pay) ? $minimum_pay : $maxmum_pay;
@@ -97,7 +97,7 @@ class JOB
         }
         require __DIR__ ."/../config.php";
         if($stmt = mysqli_prepare($link, $sql)) {
-            mysqli_stmt_bind_param($stmt, "siiiiiiiis", $title, $user_id, $type, $pay_type, $minimum_pay, $maxmum_pay, $number, $region_id, $district_id, $location);
+            mysqli_stmt_bind_param($stmt, "siiiiiiiis", $title, $user_id, $type, $pay_type, $minimum_pay, $maximum_pay, $number, $region_id, $district_id, $location);
             if(mysqli_stmt_execute($stmt)){
                 $r = true;
                 $jid = mysqli_insert_id($link);
