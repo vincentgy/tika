@@ -18,6 +18,38 @@ class JOB
         return $rows;
     }
 
+    static function gettypes() {
+        $sql = "SELECT * FROM types";
+        $r = false;
+        $rows = [];
+        require __DIR__ ."/../config.php";
+        if($result = mysqli_query($link, $sql)) {
+            while ($row=mysqli_fetch_assoc($result)) {
+                $rows[] = $row;
+            }
+            // Free result set
+            mysqli_free_result($result);
+        }
+        mysqli_close($link);
+        return $rows;
+    }
+
+    static function getpaytypes() {
+        $sql = "SELECT * FROM pay_types";
+        $r = false;
+        $rows = [];
+        require __DIR__ ."/../config.php";
+        if($result = mysqli_query($link, $sql)) {
+            while ($row=mysqli_fetch_assoc($result)) {
+                $rows[] = $row;
+            }
+            // Free result set
+            mysqli_free_result($result);
+        }
+        mysqli_close($link);
+        return $rows;
+    }
+
     static function getregionsbycountrycode($code = 'NZ') {
         $sql = "SELECT * FROM regions WHERE country_code = ?";
         $rows = [];
@@ -84,20 +116,20 @@ class JOB
         return $r;
     }
 
-    static function addjob($title, $user_id, $type, $pay_type, $minimum_pay, $maximum_pay, $number, $region_id, $district_id, $location, $categories)
+    static function addjob($title, $company, $user_id, $type, $pay_type, $minimum_pay, $maximum_pay, $number, $region_id, $district_id, $location, $categories)
     {
         $r = false;
         $maxmum_pay = is_null($maxmum_pay) ? $minimum_pay : $maxmum_pay;
         $number = is_null($number) ? 1 : $number;
 
-        $sql = "INSERT INTO positions (title, user_id, type, pay_type, minimum_pay, maximum_pay, numbers, region_id, district_id, location, timestamp) VALUES (?,?,?,?,?,?,?,?,?,?,UNIX_TIMESTAMP())";
+        $sql = "INSERT INTO positions (title, company, user_id, type, pay_type, minimum_pay, maximum_pay, numbers, region_id, district_id, location, timestamp) VALUES (?,?,?,?,?,?,?,?,?,?,?,UNIX_TIMESTAMP())";
 
         if (USER::checkuserid($user_id) === false) {
             return $r;
         }
         require __DIR__ ."/../config.php";
         if($stmt = mysqli_prepare($link, $sql)) {
-            mysqli_stmt_bind_param($stmt, "siiiiiiiis", $title, $user_id, $type, $pay_type, $minimum_pay, $maximum_pay, $number, $region_id, $district_id, $location);
+            mysqli_stmt_bind_param($stmt, "ssiiiiiiiis", $title, $company, $user_id, $type, $pay_type, $minimum_pay, $maximum_pay, $number, $region_id, $district_id, $location);
             if(mysqli_stmt_execute($stmt)){
                 $r = true;
                 $jid = mysqli_insert_id($link);
