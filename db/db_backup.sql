@@ -89,6 +89,114 @@ INSERT INTO `districts` VALUES (1,'Auckland City',1),(2,'Franklin',1),(3,'Haurak
 UNLOCK TABLES;
 
 --
+-- Table structure for table `pay_types`
+--
+
+DROP TABLE IF EXISTS `pay_types`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `pay_types` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(50) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `pay_types`
+--
+
+LOCK TABLES `pay_types` WRITE;
+/*!40000 ALTER TABLE `pay_types` DISABLE KEYS */;
+INSERT INTO `pay_types` VALUES (1,'one-off'),(2,'annual'),(3,'hourly');
+/*!40000 ALTER TABLE `pay_types` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `position_category`
+--
+
+DROP TABLE IF EXISTS `position_category`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `position_category` (
+  `position_id` int(11) NOT NULL,
+  `category_id` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `position_category`
+--
+
+LOCK TABLES `position_category` WRITE;
+/*!40000 ALTER TABLE `position_category` DISABLE KEYS */;
+/*!40000 ALTER TABLE `position_category` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `positions`
+--
+
+DROP TABLE IF EXISTS `positions`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `positions` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `title` varchar(255) NOT NULL,
+  `company` varchar(255) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `type` int(11) NOT NULL,
+  `pay_type` int(11) NOT NULL,
+  `minimum_pay` int(11) NOT NULL,
+  `maximum_pay` int(11) DEFAULT NULL,
+  `numbers` int(11) NOT NULL DEFAULT '1',
+  `region_id` int(11) NOT NULL,
+  `district_id` int(11) NOT NULL,
+  `location` varchar(255) DEFAULT NULL,
+  `timestamp` int(11) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `positions`
+--
+
+LOCK TABLES `positions` WRITE;
+/*!40000 ALTER TABLE `positions` DISABLE KEYS */;
+/*!40000 ALTER TABLE `positions` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `qualifications`
+--
+
+DROP TABLE IF EXISTS `qualifications`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `qualifications` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `user_id` int(11) NOT NULL,
+  `degree` varchar(50) NOT NULL,
+  `school` varchar(255) NOT NULL,
+  `major` varchar(255) DEFAULT NULL,
+  `start_year` int(4) NOT NULL,
+  `end_year` int(4) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `qualifications`
+--
+
+LOCK TABLES `qualifications` WRITE;
+/*!40000 ALTER TABLE `qualifications` DISABLE KEYS */;
+/*!40000 ALTER TABLE `qualifications` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `regions`
 --
 
@@ -111,6 +219,30 @@ LOCK TABLES `regions` WRITE;
 /*!40000 ALTER TABLE `regions` DISABLE KEYS */;
 INSERT INTO `regions` VALUES (1,'Auckland','NZ'),(2,'Bay Of Plenty','NZ'),(3,'Canterbury','NZ'),(4,'Gisborne','NZ'),(5,'Hawke\'s Bay','NZ'),(6,'Manawatu / Wanganui','NZ'),(7,'Marlborough','NZ'),(8,'Nelson / Tasman','NZ'),(9,'Northland','NZ'),(10,'Otago','NZ'),(11,'Southland','NZ'),(12,'Taranaki','NZ'),(13,'Waikato','NZ'),(14,'Wellington','NZ'),(15,'West Coast','NZ');
 /*!40000 ALTER TABLE `regions` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `types`
+--
+
+DROP TABLE IF EXISTS `types`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `types` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(50) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `types`
+--
+
+LOCK TABLES `types` WRITE;
+/*!40000 ALTER TABLE `types` DISABLE KEYS */;
+INSERT INTO `types` VALUES (1,'full-time'),(2,'contract'),(3,'part-time'),(4,'one-off');
+/*!40000 ALTER TABLE `types` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -151,4 +283,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2018-07-11 20:36:06
+-- Dump completed on 2018-07-26 15:53:12
