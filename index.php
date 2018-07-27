@@ -37,27 +37,27 @@ if(isset($req['a'])) {
             $categories = JOB::getcategories();
             if ($categories !== false) {
                 $response['ret'] = 0;
-                $response['data'] = json_encode($categories);
+                $response['data'] = $categories;
             }
             else {
                 $response['ret'] = 1;
             }
         break;
         case 'jt':// job types
-            $categories = JOB::gettypes();
-            if ($categories !== false) {
+            $types = JOB::gettypes();
+            if ($types !== false) {
                 $response['ret'] = 0;
-                $response['data'] = json_encode($categories);
+                $response['data'] = $types;
             }
             else {
                 $response['ret'] = 1;
             }
         break;
         case 'jpt':// job pay types.
-            $categories = JOB::getpaytypes();
-            if ($categories !== false) {
+            $ptypes = JOB::getpaytypes();
+            if ($ptypes !== false) {
                 $response['ret'] = 0;
-                $response['data'] = json_encode($categories);
+                $response['data'] = $ptypes;
             }
             else {
                 $response['ret'] = 1;
@@ -67,7 +67,7 @@ if(isset($req['a'])) {
             $regions = isset($req['c']) ? JOB::getregionsbycountrycode($req['c']) : JOB::getregionsbycountrycode();
             if ($regions !== false) {
                 $response['ret'] = 0;
-                $response['data'] = json_encode($regions);
+                $response['data'] = $regions;
             }
             else {
                 $response['ret'] = 1;
@@ -81,7 +81,7 @@ if(isset($req['a'])) {
                 $districts = JOB::getdistrictsbyregion($req['r']);
                 if ($districts !== false) {
                     $response['ret'] = 0;
-                    $response['data'] = json_encode($districts);
+                    $response['data'] = $districts;
                 }
                 else {
                     $response['ret'] = 1;
@@ -115,7 +115,7 @@ if(isset($req['a'])) {
             $address = Geometry::covertToAddress($req['lat'], $req['lng']);
             if ($address !== false) {
                 $response['ret'] = 0;
-                $response['data'] = json_encode($address);
+                $response['data'] = $address;
             }
             else {
                 $response['ret'] = 1;
