@@ -128,5 +128,6 @@ if(isset($req['a'])) {
 else {
 }
 
+header('Content-Type: application/json');
 echo json_encode($response);
 ?>
