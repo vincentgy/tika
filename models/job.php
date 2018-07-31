@@ -133,7 +133,7 @@ class JOB
         }
 
         if($stmt = mysqli_prepare($link, $sql)) {
-            mysqli_stmt_bind_param($stmt, "ssiiiiiiiis", $title, $company, $user_id, $type, $pay_type, $minimum_pay, $maximum_pay, $number, $region_id, $district_id, $geo->latitude, $geo->longitude, $location);
+            mysqli_stmt_bind_param($stmt, "ssiiiiiiiisdd", $title, $company, $user_id, $type, $pay_type, $minimum_pay, $maximum_pay, $number, $region_id, $district_id, $location, $geo->latitude, $geo->longitude);
             if(mysqli_stmt_execute($stmt)){
                 $r = true;
                 $jid = mysqli_insert_id($link);
