@@ -103,7 +103,7 @@ if(isset($req['a'])) {
                 $response['ret'] = -2;
             }
             else {
-                require_once __DIR__ ."/config.php";
+
                 $r = JOB::addjob($link, $req['title'], $req['company'], $req['user_id'], $req['type'], $req['pay_type'], $req['minimum_pay'], $req['maximum_pay'], $req['number'], $req['region_id'], $req['district_id'], $req['location'], $req['categories']);
                 if ($r !== false) {
                     $response['ret'] = 0;

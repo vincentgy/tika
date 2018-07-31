@@ -35,7 +35,7 @@ class Address {
                 mysqli_free_result($result);
             }
         }
-        mysqli_close($link);
+        error_log(print_r($rows, true));
         $region = false;
         if (count($rows) === 1) {
             $region = $rows[0]['name'];
@@ -60,8 +60,9 @@ class Address {
                 mysqli_free_result($result);
             }
         }
-        mysqli_close($link);
+
         $district = false;
+        error_log(print_r($rows, true));
         if (count($rows) === 1) {
             $region = $rows[0]['name'];
         }
