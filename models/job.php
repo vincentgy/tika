@@ -1,5 +1,5 @@
 <?php
-include("location.php");
+include_once("location.php");
 
 class JOB
 {
