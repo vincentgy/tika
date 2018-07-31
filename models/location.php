@@ -64,7 +64,7 @@ class Address {
         $district = false;
         error_log(print_r($rows, true));
         if (count($rows) === 1) {
-            $region = $rows[0]['name'];
+            $district = $rows[0]['name'];
         }
         return $district;
     }

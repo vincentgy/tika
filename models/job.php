@@ -15,7 +15,7 @@ class JOB
             // Free result set
             mysqli_free_result($result);
         }
-        mysqli_close($link);
+
         return $rows;
     }
 
@@ -31,7 +31,7 @@ class JOB
             // Free result set
             mysqli_free_result($result);
         }
-        mysqli_close($link);
+
         return $rows;
     }
 
@@ -47,7 +47,7 @@ class JOB
             // Free result set
             mysqli_free_result($result);
         }
-        mysqli_close($link);
+
         return $rows;
     }
 
@@ -68,7 +68,7 @@ class JOB
                 mysqli_free_result($result);
             }
         }
-        mysqli_close($link);
+
         return $rows;
     }
 
@@ -89,7 +89,7 @@ class JOB
                 mysqli_free_result($result);
             }
         }
-        mysqli_close($link);
+
         return $rows;
     }
 
@@ -112,7 +112,7 @@ class JOB
             echo("Error description: " . mysqli_error($link));
             $r = false;
         }
-        mysqli_close($link);
+
         return $r;
     }
 
@@ -150,7 +150,7 @@ class JOB
             echo("Error description: " . mysqli_error($link));
             $r = false;
         }
-        mysqli_close($link);
+
         return $r;
     }
 }

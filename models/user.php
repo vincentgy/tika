@@ -23,7 +23,7 @@ class USER
                 mysqli_stmt_close($stmt);
             }
         }
-        mysqli_close($link);
+
         return $r;
     }
 
@@ -47,7 +47,7 @@ class USER
                 mysqli_stmt_close($stmt);
             }
         }
-        mysqli_close($link);
+
         return $r;
     }
 
@@ -71,7 +71,7 @@ class USER
                 mysqli_stmt_close($stmt);
             }
         }
-        mysqli_close($link);
+
         return $r;
     }
 
@@ -98,7 +98,7 @@ class USER
             echo("Error description: " . mysqli_error($link));
             $r = false;
         }
-        mysqli_close($link);
+
         return $r;
     }
 }
