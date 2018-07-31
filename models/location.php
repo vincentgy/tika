@@ -46,7 +46,7 @@ class Address {
     static function getdistrictbyId($link, $id) {
         $sql = "SELECT * FROM districts WHERE id = ?";
         $rows = [];
-        require_once __DIR__ ."/../config.php";
+
         if($stmt = mysqli_prepare($link, $sql)) {
             // Bind variables to the prepared statement as parameters
             mysqli_stmt_bind_param($stmt, "i", $id);
@@ -79,9 +79,9 @@ class Address {
         return $c;
     }
 
-    static function getaddress($location, $district_id, $region_id, $country_code = 'NZ') {
+    static function getaddress($link, $location, $district_id, $region_id, $country_code = 'NZ') {
 
-        return $location . ',' . Address::getdistrictbyId($district_id) . ',' . Address::getregionbyId($region_id) . ',' . Address::getcountry($country_code);
+        return $location . ',' . Address::getdistrictbyId($link, $district_id) . ',' . Address::getregionbyId($link, $region_id) . ',' . Address::getcountry($country_code);
     }
 }
 

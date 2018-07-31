@@ -121,7 +121,7 @@ class JOB
         $r = false;
         $maxmum_pay = is_null($minimum_pay) ? $minimum_pay : $minimum_pay;
         $number = is_null($number) ? 1 : $number;
-        $address = Address::getaddress($location, $district_id, $region_id);
+        $address = Address::getaddress($link, $location, $district_id, $region_id);
         error_log(print_r($address, true));
         $geo = Geometry::covertToLocation($address);
         error_log(print_r($geo, true));
