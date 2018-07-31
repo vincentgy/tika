@@ -18,10 +18,10 @@ class Address {
         $this->formatted_address = $Formatted_address;
     }
 
-    static function getregionbyId($id) {
+    static function getregionbyId($link, $id) {
         $sql = "SELECT * FROM regions WHERE id = ?";
         $rows = [];
-        require_once __DIR__ ."/../config.php";
+
         if($stmt = mysqli_prepare($link, $sql)) {
             // Bind variables to the prepared statement as parameters
             mysqli_stmt_bind_param($stmt, "i", $id);
@@ -43,7 +43,7 @@ class Address {
         return $region;
     }
 
-    static function getdistrictbyId($id) {
+    static function getdistrictbyId($link, $id) {
         $sql = "SELECT * FROM districts WHERE id = ?";
         $rows = [];
         require_once __DIR__ ."/../config.php";

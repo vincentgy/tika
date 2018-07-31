@@ -3,10 +3,10 @@
 class USER
 {
 
-    static function checkuser($email, $password) {
+    static function checkuser($link, $email, $password) {
         $sql = "SELECT * FROM users WHERE email = ? AND password = ?";
         $r = false;
-        require __DIR__ ."/../config.php";
+
         if($stmt = mysqli_prepare($link, $sql)) {
             // Bind variables to the prepared statement as parameters
             mysqli_stmt_bind_param($stmt, "ss", $email, $password);
@@ -27,10 +27,10 @@ class USER
         return $r;
     }
 
-    static function checkemail($email) {
+    static function checkemail($link, $email) {
         $sql = "SELECT * FROM users WHERE email = ?";
         $r = false;
-        require __DIR__ ."/../config.php";
+
         if($stmt = mysqli_prepare($link, $sql)) {
             // Bind variables to the prepared statement as parameters
             mysqli_stmt_bind_param($stmt, "s", $email);
@@ -51,10 +51,10 @@ class USER
         return $r;
     }
 
-    static function checkuserid($user_id) {
+    static function checkuserid($link, $user_id) {
         $sql = "SELECT * FROM users WHERE id = ?";
         $r = false;
-        require __DIR__ ."/../config.php";
+
         if($stmt = mysqli_prepare($link, $sql)) {
             // Bind variables to the prepared statement as parameters
             mysqli_stmt_bind_param($stmt, "i", $user_id);
@@ -75,12 +75,12 @@ class USER
         return $r;
     }
 
-    static function adduser($email, $password, $name)
+    static function adduser($link, $email, $password, $name)
     {
         $r = false;
         $sql = "INSERT INTO users (email, password, name, created_at, lastlogin) VALUES (?,?,?,UNIX_TIMESTAMP(), UNIX_TIMESTAMP())";
 
-        if (USER::checkemail($email) === true) {
+        if (USER::checkemail($link, $email) === true) {
             return $r;
         }
         require __DIR__ ."/../config.php";

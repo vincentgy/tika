@@ -2,6 +2,7 @@
 include_once "./models/user.php";
 include_once "./models/geometry.php";
 include_once "./models/job.php";
+require_once __DIR__ ."/config.php";
 
 $response = array();
 $data = json_decode(file_get_contents('php://input'), true);
@@ -11,7 +12,7 @@ $req = $data["param"];
 if(isset($req['a'])) {
     switch ($req['a']) {
         case 'ul':// user login
-            if (USER::checkuser($req['e'], $req['p']) === true) {
+            if (USER::checkuser($link, $req['e'], $req['p']) === true) {
                 $response['ret'] = 0;
             }
             else {
@@ -25,7 +26,7 @@ if(isset($req['a'])) {
                     $response['ret'] = -2;
             }
             else {
-                if (USER::adduser($req['e'], $req['p'], $req['n']) === true) {
+                if (USER::adduser($link, $req['e'], $req['p'], $req['n']) === true) {
                     $response['ret'] = 0;
                 }
                 else {
@@ -34,7 +35,7 @@ if(isset($req['a'])) {
             }
         break;
         case 'jc':// job categories
-            $categories = JOB::getcategories();
+            $categories = JOB::getcategories($link);
             if ($categories !== false) {
                 $response['ret'] = 0;
                 $response['data'] = $categories;
@@ -44,7 +45,7 @@ if(isset($req['a'])) {
             }
         break;
         case 'jt':// job types
-            $types = JOB::gettypes();
+            $types = JOB::gettypes($link);
             if ($types !== false) {
                 $response['ret'] = 0;
                 $response['data'] = $types;
@@ -54,7 +55,7 @@ if(isset($req['a'])) {
             }
         break;
         case 'jpt':// job pay types.
-            $ptypes = JOB::getpaytypes();
+            $ptypes = JOB::getpaytypes($link);
             if ($ptypes !== false) {
                 $response['ret'] = 0;
                 $response['data'] = $ptypes;
@@ -64,7 +65,7 @@ if(isset($req['a'])) {
             }
         break;
         case 'lr':// list regions
-            $regions = isset($req['c']) ? JOB::getregionsbycountrycode($req['c']) : JOB::getregionsbycountrycode();
+            $regions = isset($req['c']) ? JOB::getregionsbycountrycode($link, $req['c']) : JOB::getregionsbycountrycode($link);
             if ($regions !== false) {
                 $response['ret'] = 0;
                 $response['data'] = $regions;
@@ -78,7 +79,7 @@ if(isset($req['a'])) {
                 $response['ret'] = -2;
             }
             else {
-                $districts = JOB::getdistrictsbyregion($req['r']);
+                $districts = JOB::getdistrictsbyregion($link, $req['r']);
                 if ($districts !== false) {
                     $response['ret'] = 0;
                     $response['data'] = $districts;
@@ -102,7 +103,7 @@ if(isset($req['a'])) {
                 $response['ret'] = -2;
             }
             else {
-                $r = JOB::addjob($req['title'], $req['company'], $req['user_id'], $req['type'], $req['pay_type'], $req['minimum_pay'], $req['maximum_pay'], $req['number'], $req['region_id'], $req['district_id'], $req['location'], $req['categories']);
+                $r = JOB::addjob($link, $req['title'], $req['company'], $req['user_id'], $req['type'], $req['pay_type'], $req['minimum_pay'], $req['maximum_pay'], $req['number'], $req['region_id'], $req['district_id'], $req['location'], $req['categories']);
                 if ($r !== false) {
                     $response['ret'] = 0;
                 }

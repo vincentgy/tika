@@ -3,11 +3,11 @@ include_once("location.php");
 
 class JOB
 {
-    static function getcategories() {
+    static function getcategories($link) {
         $sql = "SELECT * FROM categories";
         $r = false;
         $rows = [];
-        require_once __DIR__ ."/../config.php";
+
         if($result = mysqli_query($link, $sql)) {
             while ($row=mysqli_fetch_assoc($result)) {
                 $rows[] = $row;
@@ -19,11 +19,11 @@ class JOB
         return $rows;
     }
 
-    static function gettypes() {
+    static function gettypes($link) {
         $sql = "SELECT * FROM types";
         $r = false;
         $rows = [];
-        require_once __DIR__ ."/../config.php";
+
         if($result = mysqli_query($link, $sql)) {
             while ($row=mysqli_fetch_assoc($result)) {
                 $rows[] = $row;
@@ -35,11 +35,11 @@ class JOB
         return $rows;
     }
 
-    static function getpaytypes() {
+    static function getpaytypes($link) {
         $sql = "SELECT * FROM pay_types";
         $r = false;
         $rows = [];
-        require_once __DIR__ ."/../config.php";
+
         if($result = mysqli_query($link, $sql)) {
             while ($row=mysqli_fetch_assoc($result)) {
                 $rows[] = $row;
@@ -51,10 +51,10 @@ class JOB
         return $rows;
     }
 
-    static function getregionsbycountrycode($code = 'NZ') {
+    static function getregionsbycountrycode($link, $code = 'NZ') {
         $sql = "SELECT * FROM regions WHERE country_code = ?";
         $rows = [];
-        require_once __DIR__ ."/../config.php";
+
         if($stmt = mysqli_prepare($link, $sql)) {
             // Bind variables to the prepared statement as parameters
             mysqli_stmt_bind_param($stmt, "s", $code);
@@ -72,10 +72,10 @@ class JOB
         return $rows;
     }
 
-    static function getdistrictsbyregion($region_id) {
+    static function getdistrictsbyregion($link, $region_id) {
         $sql = "SELECT * FROM districts WHERE region_id = ?";
         $rows = [];
-        require_once __DIR__ ."/../config.php";
+
         if($stmt = mysqli_prepare($link, $sql)) {
             // Bind variables to the prepared statement as parameters
             mysqli_stmt_bind_param($stmt, "i", $region_id);
@@ -93,12 +93,11 @@ class JOB
         return $rows;
     }
 
-    static function addjobcategory($job_id, $category_id)
+    static function addjobcategory($link, $job_id, $category_id)
     {
         $r = false;
         $sql = "INSERT INTO position_category (position_id, category_id) VALUES (?,?)";
 
-        require_once __DIR__ ."/../config.php";
         if($stmt = mysqli_prepare($link, $sql)) {
             mysqli_stmt_bind_param($stmt, "ii", $job_id, $category_id);
             if(mysqli_stmt_execute($stmt)){
@@ -117,7 +116,7 @@ class JOB
         return $r;
     }
 
-    static function addjob($title, $company, $user_id, $type, $pay_type, $minimum_pay, $maximum_pay, $number, $region_id, $district_id, $location, $categories)
+    static function addjob($link, $title, $company, $user_id, $type, $pay_type, $minimum_pay, $maximum_pay, $number, $region_id, $district_id, $location, $categories)
     {
         $r = false;
         $maxmum_pay = is_null($minimum_pay) ? $minimum_pay : $minimum_pay;
@@ -129,17 +128,17 @@ class JOB
 
         $sql = "INSERT INTO positions (title, company, user_id, type, pay_type, minimum_pay, maximum_pay, numbers, region_id, district_id, location, latitude, longitude, timestamp) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,UNIX_TIMESTAMP())";
 
-        if (USER::checkuserid($user_id) === false) {
+        if (USER::checkuserid($link, $user_id) === false) {
             return $r;
         }
-        require_once __DIR__ ."/../config.php";
+
         if($stmt = mysqli_prepare($link, $sql)) {
             mysqli_stmt_bind_param($stmt, "ssiiiiiiiis", $title, $company, $user_id, $type, $pay_type, $minimum_pay, $maximum_pay, $number, $region_id, $district_id, $geo->latitude, $geo->longitude, $location);
             if(mysqli_stmt_execute($stmt)){
                 $r = true;
                 $jid = mysqli_insert_id($link);
                 for ($i = 0; $i < count($categories); $i++) {
-                    JOB::addjobcategory($jid, $categories[$i]);
+                    JOB::addjobcategory($link, $jid, $categories[$i]);
                 }
             }
             else {
