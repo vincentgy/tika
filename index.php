@@ -113,6 +113,22 @@ if(isset($req['a'])) {
                 }
             }
         break;
+        case 'sj':// search job
+            if (isset($req['query']) === false) {
+                $response['ret'] = -2;
+            }
+            else {
+
+                $r = JOB::searchjobs($link, $req['query']);
+                if ($r !== false) {
+                    $response['ret'] = 0;
+                }
+                else {
+                    $response['ret'] = 1;
+                    $response['data'] = $r;
+                }
+            }
+        break;
         case 'cl':// current location
             $address = Geometry::covertToAddress($req['lat'], $req['lng']);
             if ($address !== false) {

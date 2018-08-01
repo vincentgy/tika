@@ -102,4 +102,5 @@ class USER
         return $r;
     }
 }
+
 ?>

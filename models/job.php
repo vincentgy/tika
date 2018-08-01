@@ -1,5 +1,5 @@
 <?php
-include_once("location.php");
+include_once("geometry.php");
 
 class JOB
 {
@@ -93,8 +93,7 @@ class JOB
         return $rows;
     }
 
-    static function addjobcategory($link, $job_id, $category_id)
-    {
+    static function addjobcategory($link, $job_id, $category_id) {
         $r = false;
         $sql = "INSERT INTO position_category (position_id, category_id) VALUES (?,?)";
 
@@ -116,8 +115,7 @@ class JOB
         return $r;
     }
 
-    static function addjob($link, $title, $company, $user_id, $type, $pay_type, $minimum_pay, $maximum_pay, $number, $region_id, $district_id, $location, $categories)
-    {
+    static function addjob($link, $title, $company, $user_id, $type, $pay_type, $minimum_pay, $maximum_pay, $number, $region_id, $district_id, $location, $categories) {
         $r = false;
         $maxmum_pay = is_null($minimum_pay) ? $minimum_pay : $minimum_pay;
         $number = is_null($number) ? 1 : $number;
@@ -152,6 +150,73 @@ class JOB
         }
 
         return $r;
+    }
+
+
+    static function generatesql($query) {
+        $sql = 'SELECT * FROM postions';
+        $where = ' WHERE 1';
+        foreach ($query as $key => $val) {
+            switch ($key) {
+                case 'title':
+                    $where .= ' AND title LIKE  "%'.$val.'%"';
+                break;
+                case 'company':
+                    $where .= ' AND company LIKE  "%'.$val.'%"';
+                break;
+                case 'description':
+                    $where .= ' AND description LIKE  "%'.$val.'%"';
+                break;
+                case 'type':
+                    $where .= ' AND type = '.$val;
+                break;
+                case 'pay_type':
+                    $where .= ' AND pay_type = '.$val;
+                break;
+                case 'minimum_pay':
+                    $where .= ' AND minimum_pay >= '.$val;
+                break;
+                case 'maximum_pay':
+                    $where .= ' AND maximum_pay <= '.$val;
+                break;
+                case 'region_id':
+                    $where .= ' AND region_id = '.$val;
+                break;
+                case 'district_id':
+                    $where .= ' AND district_id = '.$val;
+                break;
+                case 'location':
+                    $where .= ' AND location LIKE  "%'.$val.'%"';
+                break;
+            }
+        }
+    }
+
+    static function searchjobs($link, $query) {
+        $rows = [];
+        $sql = JOB::generatesql($query);
+        error_log(print_r($sql, true));
+        if($stmt = mysqli_prepare($link, $sql)) {
+            // Bind variables to the prepared statement as parameters
+            mysqli_stmt_bind_param($stmt, "i", $region_id);
+            if(mysqli_stmt_execute($stmt)) {
+                $result = mysqli_stmt_get_result($stmt);
+
+                while ($row=mysqli_fetch_assoc($result)) {
+                    //$dist = Geometry::distance();
+                    if (isset($query['distance'])) {
+
+                    }
+                    else {
+                        $rows[] = $row;
+                    }
+                }
+                // Free result set
+                mysqli_free_result($result);
+            }
+        }
+
+        return $rows;
     }
 }
 ?>
