@@ -154,8 +154,9 @@ class JOB
 
 
     static function generatesql($query) {
-        $sql = 'SELECT * FROM postions';
+        $sql = 'SELECT * FROM postions JOIN position_category on postions.id = position_category.position_id';
         $where = ' WHERE 1';
+
         foreach ($query as $key => $val) {
             switch ($key) {
                 case 'title':
@@ -187,6 +188,9 @@ class JOB
                 break;
                 case 'location':
                     $where .= ' AND location LIKE  "%'.$val.'%"';
+                break;
+                case 'category_ids':
+                    $where .= ' AND category_id IN "('.implode(',', $val).')"';
                 break;
             }
         }
