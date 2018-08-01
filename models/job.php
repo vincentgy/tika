@@ -115,7 +115,7 @@ class JOB
         return $r;
     }
 
-    static function addjob($link, $title, $company, $user_id, $type, $pay_type, $minimum_pay, $maximum_pay, $number, $region_id, $district_id, $location, $categories) {
+    static function addjob($link, $title, $company, $description, $user_id, $type, $pay_type, $minimum_pay, $maximum_pay, $number, $region_id, $district_id, $location, $categories) {
         $r = false;
         $maxmum_pay = is_null($minimum_pay) ? $minimum_pay : $minimum_pay;
         $number = is_null($number) ? 1 : $number;
@@ -124,14 +124,14 @@ class JOB
         $geo = Geometry::covertToLocation($address);
         error_log(print_r($geo, true));
 
-        $sql = "INSERT INTO positions (title, company, user_id, type, pay_type, minimum_pay, maximum_pay, numbers, region_id, district_id, location, latitude, longitude, timestamp) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,UNIX_TIMESTAMP())";
+        $sql = "INSERT INTO positions (title, company, description, user_id, type, pay_type, minimum_pay, maximum_pay, numbers, region_id, district_id, location, latitude, longitude, timestamp) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,UNIX_TIMESTAMP())";
 
         if (USER::checkuserid($link, $user_id) === false) {
             return $r;
         }
 
         if($stmt = mysqli_prepare($link, $sql)) {
-            mysqli_stmt_bind_param($stmt, "ssiiiiiiiisdd", $title, $company, $user_id, $type, $pay_type, $minimum_pay, $maximum_pay, $number, $region_id, $district_id, $location, $geo->latitude, $geo->longitude);
+            mysqli_stmt_bind_param($stmt, "sssiiiiiiiisdd", $title, $company, $description, $user_id, $type, $pay_type, $minimum_pay, $maximum_pay, $number, $region_id, $district_id, $location, $geo->latitude, $geo->longitude);
             if(mysqli_stmt_execute($stmt)){
                 $r = true;
                 $jid = mysqli_insert_id($link);

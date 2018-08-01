@@ -2,6 +2,7 @@
 include_once "./models/user.php";
 include_once "./models/geometry.php";
 include_once "./models/job.php";
+include_once "./models/session.php";
 require_once __DIR__ ."/config.php";
 
 $response = array();
@@ -9,10 +10,31 @@ $data = json_decode(file_get_contents('php://input'), true);
 error_log(print_r($data, true));
 $req = $data["param"];
 
+function get_client_ip_server() {
+    $ipaddress = '';
+    if ($_SERVER['HTTP_CLIENT_IP'])
+        $ipaddress = $_SERVER['HTTP_CLIENT_IP'];
+    else if($_SERVER['HTTP_X_FORWARDED_FOR'])
+        $ipaddress = $_SERVER['HTTP_X_FORWARDED_FOR'];
+    else if($_SERVER['HTTP_X_FORWARDED'])
+        $ipaddress = $_SERVER['HTTP_X_FORWARDED'];
+    else if($_SERVER['HTTP_FORWARDED_FOR'])
+        $ipaddress = $_SERVER['HTTP_FORWARDED_FOR'];
+    else if($_SERVER['HTTP_FORWARDED'])
+        $ipaddress = $_SERVER['HTTP_FORWARDED'];
+    else if($_SERVER['REMOTE_ADDR'])
+        $ipaddress = $_SERVER['REMOTE_ADDR'];
+    else
+        $ipaddress = 'UNKNOWN';
+
+    return $ipaddress;
+}
+
 if(isset($req['a'])) {
     switch ($req['a']) {
         case 'ul':// user login
-            if (USER::checkuser($link, $req['e'], $req['p']) === true) {
+            if ($r = USER::checkuser($link, $req['e'], $req['p']) !== false) {
+                SESSION::addtoken($link, $r, get_client_ip_server());
                 $response['ret'] = 0;
             }
             else {
@@ -104,7 +126,7 @@ if(isset($req['a'])) {
             }
             else {
 
-                $r = JOB::addjob($link, $req['title'], $req['company'], $req['user_id'], $req['type'], $req['pay_type'], $req['minimum_pay'], $req['maximum_pay'], $req['number'], $req['region_id'], $req['district_id'], $req['location'], $req['categories']);
+                $r = JOB::addjob($link, $req['title'], $req['company'], $req['description'], $req['user_id'], $req['type'], $req['pay_type'], $req['minimum_pay'], $req['maximum_pay'], $req['number'], $req['region_id'], $req['district_id'], $req['location'], $req['categories']);
                 if ($r !== false) {
                     $response['ret'] = 0;
                 }

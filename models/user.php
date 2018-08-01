@@ -11,11 +11,11 @@ class USER
             // Bind variables to the prepared statement as parameters
             mysqli_stmt_bind_param($stmt, "ss", $email, $password);
             if(mysqli_stmt_execute($stmt)) {
-                mysqli_stmt_store_result($stmt);
+                $result = mysqli_stmt_get_result($stmt);
                 
-                if(mysqli_stmt_num_rows($stmt) == 1) {
+                if ($row = mysqli_fetch_assoc($result)) {
+                    $r = $row['id'];
                     mysqli_stmt_close($stmt);
-                    $r = true;
                 }
             }
             else {
