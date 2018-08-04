@@ -1,8 +1,8 @@
--- MySQL dump 10.13  Distrib 5.7.22, for Linux (x86_64)
+-- MySQL dump 10.13  Distrib 5.7.23, for Linux (x86_64)
 --
 -- Host: localhost    Database: tikadb
 -- ------------------------------------------------------
--- Server version	5.7.22-0ubuntu0.16.04.1
+-- Server version	5.7.23-0ubuntu0.16.04.1
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -14,6 +14,31 @@
 /*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+
+--
+-- Table structure for table `applications`
+--
+
+DROP TABLE IF EXISTS `applications`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `applications` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `position_id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `timestamp` int(11) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `applications`
+--
+
+LOCK TABLES `applications` WRITE;
+/*!40000 ALTER TABLE `applications` DISABLE KEYS */;
+/*!40000 ALTER TABLE `applications` ENABLE KEYS */;
+UNLOCK TABLES;
 
 --
 -- Table structure for table `categories`
@@ -131,6 +156,7 @@ CREATE TABLE `position_category` (
 
 LOCK TABLES `position_category` WRITE;
 /*!40000 ALTER TABLE `position_category` DISABLE KEYS */;
+INSERT INTO `position_category` VALUES (2,6),(3,6),(4,1);
 /*!40000 ALTER TABLE `position_category` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -145,6 +171,7 @@ CREATE TABLE `positions` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `title` varchar(255) NOT NULL,
   `company` varchar(255) NOT NULL,
+  `description` text,
   `user_id` int(11) NOT NULL,
   `type` int(11) NOT NULL,
   `pay_type` int(11) NOT NULL,
@@ -154,9 +181,12 @@ CREATE TABLE `positions` (
   `region_id` int(11) NOT NULL,
   `district_id` int(11) NOT NULL,
   `location` varchar(255) DEFAULT NULL,
+  `latitude` decimal(12,9) DEFAULT NULL,
+  `longitude` decimal(12,9) DEFAULT NULL,
   `timestamp` int(11) NOT NULL,
+  `active` int(1) DEFAULT '1',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -165,6 +195,7 @@ CREATE TABLE `positions` (
 
 LOCK TABLES `positions` WRITE;
 /*!40000 ALTER TABLE `positions` DISABLE KEYS */;
+INSERT INTO `positions` VALUES (1,'gopd','1678',NULL,3,1,2,10000,20000,1,2,12,'325 east coast road',NULL,NULL,1532960591,1),(2,'designer','soul machine',NULL,3,1,2,10000,20000,1,1,1,'57 customer street',NULL,NULL,1533052691,1),(3,'designer','soul machine',NULL,3,1,2,10000,20000,1,1,1,'85 wakefield street',-36.855520700,174.765643100,1533052794,1),(4,'weekend morning kitchen hand','edit',NULL,3,1,3,10000,20000,1,1,1,'edit',-36.847260400,174.767113500,1533106828,1);
 /*!40000 ALTER TABLE `positions` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -219,6 +250,31 @@ LOCK TABLES `regions` WRITE;
 /*!40000 ALTER TABLE `regions` DISABLE KEYS */;
 INSERT INTO `regions` VALUES (1,'Auckland','NZ'),(2,'Bay Of Plenty','NZ'),(3,'Canterbury','NZ'),(4,'Gisborne','NZ'),(5,'Hawke\'s Bay','NZ'),(6,'Manawatu / Wanganui','NZ'),(7,'Marlborough','NZ'),(8,'Nelson / Tasman','NZ'),(9,'Northland','NZ'),(10,'Otago','NZ'),(11,'Southland','NZ'),(12,'Taranaki','NZ'),(13,'Waikato','NZ'),(14,'Wellington','NZ'),(15,'West Coast','NZ');
 /*!40000 ALTER TABLE `regions` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `sessions`
+--
+
+DROP TABLE IF EXISTS `sessions`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `sessions` (
+  `token` varchar(32) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `created_at` int(11) NOT NULL,
+  `expiry_time` int(11) NOT NULL,
+  `ipaddress` varchar(255) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `sessions`
+--
+
+LOCK TABLES `sessions` WRITE;
+/*!40000 ALTER TABLE `sessions` DISABLE KEYS */;
+/*!40000 ALTER TABLE `sessions` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -283,4 +339,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2018-07-26 15:53:12
+-- Dump completed on 2018-08-04 13:37:21
