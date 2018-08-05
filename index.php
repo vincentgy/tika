@@ -151,6 +151,24 @@ if(isset($req['a'])) {
                 }
             }
         break;
+        case 'ap':// apply position
+            if (isset($req['p']) === false ||
+                isset($req['u']) === false
+                ) {
+                $response['ret'] = -2;
+            }
+            else if (APPLICATION::checkapplication($link, $req['u'], $req['p']) === true) {
+                $response['ret'] = 1;
+            } else {
+                $r = APPLICATION::addapplication($link, $req['u'], $req['p']);
+                if ($r !== false) {
+                    $response['ret'] = 0;
+                }
+                else {
+                    $response['ret'] = 1;
+                }
+            }
+        break;
         case 'cl':// current location
             $address = Geometry::covertToAddress($req['lat'], $req['lng']);
             if ($address !== false) {

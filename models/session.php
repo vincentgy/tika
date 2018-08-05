@@ -2,7 +2,7 @@
 
 class SESSION
 {
-    function static crypto_rand_secure($min, $max)
+    static function crypto_rand_secure($min, $max)
     {
         $range = $max - $min;
         if ($range < 1) return $min;
@@ -17,7 +17,7 @@ class SESSION
         return $min + $rnd;
     }
 
-    function static getToken($length)
+    static function getToken($length)
     {
         $token = "";
         $codeAlphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";

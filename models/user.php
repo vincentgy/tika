@@ -83,7 +83,7 @@ class USER
         if (USER::checkemail($link, $email) === true) {
             return $r;
         }
-        require __DIR__ ."/../config.php";
+
         if($stmt = mysqli_prepare($link, $sql)) {
             mysqli_stmt_bind_param($stmt, "sss", $email, $password, $name);
             if(mysqli_stmt_execute($stmt)){
