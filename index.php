@@ -141,7 +141,7 @@ if(isset($req['a'])) {
             }
             else {
 
-                $r = JOB::searchjobs($link, $req['query']);
+                $r = JOB::searchjobs($link, $req['query'], $req['location']);
                 if ($r !== false) {
                     $response['ret'] = 0;
                 }

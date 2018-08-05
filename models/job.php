@@ -152,6 +152,26 @@ class JOB
         return $r;
     }
 
+    static function getcategoriesbyposition($link, $position) {
+        $sql = "SELECT * FROM position_category WHERE position_id = ?";
+        $rows = [];
+
+        if($stmt = mysqli_prepare($link, $sql)) {
+            // Bind variables to the prepared statement as parameters
+            mysqli_stmt_bind_param($stmt, "i", $position);
+            if(mysqli_stmt_execute($stmt)) {
+                $result = mysqli_stmt_get_result($stmt);
+
+                while ($row=mysqli_fetch_assoc($result)) {
+                    $rows[] = $row;
+                }
+                // Free result set
+                mysqli_free_result($result);
+            }
+        }
+
+        return $rows;
+    }
 
     static function generatesql($query) {
         $sql = 'SELECT * FROM postions JOIN position_category on postions.id = position_category.position_id';
@@ -196,7 +216,7 @@ class JOB
         }
     }
 
-    static function searchjobs($link, $query) {
+    static function searchjobs($link, $query, $location) {
         $rows = [];
         $sql = JOB::generatesql($query);
         error_log(print_r($sql, true));
@@ -207,9 +227,11 @@ class JOB
                 $result = mysqli_stmt_get_result($stmt);
 
                 while ($row=mysqli_fetch_assoc($result)) {
-                    //$dist = Geometry::distance();
-                    if (isset($query['distance'])) {
-
+                    if (isset($query['distance']) && isset($location['latitude']) && isset($location['longitude'])) {
+                        $dist = Geometry::distance($row['latitude'], $row['longitude'], $location['latitude'], $location['longitude']);
+                        if ($dist <= $query['distance']) {
+                            $rows[] = $row;
+                        }
                     }
                     else {
                         $rows[] = $row;
@@ -220,6 +242,28 @@ class JOB
             }
         }
 
+        return $rows;
+    }
+
+    static function searchjobsbyuser($link, $userid) {
+        $sql = "SELECT * FROM regions WHERE id = ?";
+        $rows = [];
+
+        if($stmt = mysqli_prepare($link, $sql)) {
+            // Bind variables to the prepared statement as parameters
+            mysqli_stmt_bind_param($stmt, "i", $id);
+            if(mysqli_stmt_execute($stmt)) {
+                $result = mysqli_stmt_get_result($stmt);
+
+                while ($row=mysqli_fetch_assoc($result)) {
+                    $row['categories'] = JOB::getcategoriesbyposition($link, $row['id']);
+                    $rows[] = $row;
+                }
+                // Free result set
+                mysqli_free_result($result);
+            }
+        }
+        error_log(print_r($rows, true));
         return $rows;
     }
 }

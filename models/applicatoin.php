@@ -54,5 +54,4 @@ class APPLICATION
         return $r;
     }
 }
-
 ?>
