@@ -203,8 +203,8 @@ class JOB
                 case 'region_id':
                     $where .= ' AND region_id = '.$val;
                 break;
-                case 'district_id':
-                    $where .= ' AND district_id = '.$val;
+                case 'district_ids':
+                    $where .= ' AND district_id IN "('.implode(',', $val).')"';
                 break;
                 case 'location':
                     $where .= ' AND location LIKE  "%'.$val.'%"';
