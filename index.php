@@ -144,10 +144,10 @@ if(isset($req['a'])) {
                 $r = JOB::searchjobs($link, $req['query'], $req['location']);
                 if ($r !== false) {
                     $response['ret'] = 0;
+                    $response['data'] = $r;
                 }
                 else {
                     $response['ret'] = 1;
-                    $response['data'] = $r;
                 }
             }
         break;
