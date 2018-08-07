@@ -214,7 +214,7 @@ class JOB
                 break;
             }
         }
-
+        $sql .= $where;
         return $sql;
     }
 
