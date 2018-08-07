@@ -183,10 +183,10 @@ class JOB
                     $where .= ' AND title LIKE  "%'.$val.'%"';
                 break;
                 case 'company':
-                    $where .= ' AND company LIKE  "%'.$val.'%"';
+                    $where .= ' OR company LIKE  "%'.$val.'%"';
                 break;
                 case 'description':
-                    $where .= ' AND description LIKE  "%'.$val.'%"';
+                    $where .= ' OR description LIKE  "%'.$val.'%"';
                 break;
                 case 'type':
                     $where .= ' AND type = '.$val;
