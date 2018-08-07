@@ -214,6 +214,8 @@ class JOB
                 break;
             }
         }
+
+        return $sql;
     }
 
     static function searchjobs($link, $query, $location) {
