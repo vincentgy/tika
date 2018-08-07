@@ -174,19 +174,19 @@ class JOB
     }
 
     static function generatesql($query) {
-        $sql = 'SELECT * FROM postions JOIN position_category on postions.id = position_category.position_id';
+        $sql = 'SELECT * FROM positions JOIN position_category on positions.id = position_category.position_id';
         $where = ' WHERE 1';
 
         foreach ($query as $key => $val) {
             switch ($key) {
                 case 'title':
-                    $where .= ' AND title LIKE  "%'.$val.'%"';
+                    $where .= ' AND (title LIKE  "%'.$val.'%"';
                 break;
                 case 'company':
                     $where .= ' OR company LIKE  "%'.$val.'%"';
                 break;
                 case 'description':
-                    $where .= ' OR description LIKE  "%'.$val.'%"';
+                    $where .= ' OR description LIKE  "%'.$val.'%")';
                 break;
                 case 'type':
                     $where .= ' AND type = '.$val;
@@ -204,13 +204,13 @@ class JOB
                     $where .= ' AND region_id = '.$val;
                 break;
                 case 'district_ids':
-                    $where .= ' AND district_id IN "('.implode(',', $val).')"';
+                    $where .= ' AND district_id IN ('.implode(',', $val).')';
                 break;
                 case 'location':
                     $where .= ' AND location LIKE  "%'.$val.'%"';
                 break;
                 case 'category_ids':
-                    $where .= ' AND category_id IN "('.implode(',', $val).')"';
+                    $where .= ' AND category_id IN ('.implode(',', $val).')';
                 break;
             }
         }
@@ -231,6 +231,7 @@ class JOB
                 while ($row=mysqli_fetch_assoc($result)) {
                     if (isset($query['distance']) && isset($location['latitude']) && isset($location['longitude'])) {
                         $dist = Geometry::distance($row['latitude'], $row['longitude'], $location['latitude'], $location['longitude']);
+                        error_log(print_r($dist, true));
                         if ($dist <= $query['distance']) {
                             $rows[] = $row;
                         }
@@ -243,7 +244,7 @@ class JOB
                 mysqli_free_result($result);
             }
         }
-
+        error_log(print_r($rows, true));
         return $rows;
     }
 
