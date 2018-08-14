@@ -196,6 +196,41 @@ if(isset($req['a'])) {
                 $response['ret'] = 1;
             }
         break;
+        case 'uq':// update qualification
+            if (isset($req['id']) === false ||
+                isset($req['degree']) === false ||
+                isset($req['school']) === false ||
+                isset($req['major']) === false ||
+                isset($req['start']) === false ||
+                isset($req['end']) === false) {
+                $response['ret'] = -2;
+            }
+
+            $r = PROFILE::updatequalification($link, $req['id'], $req['degree'], $req['school'], $req['major'], $req['start'], $req['end']);
+            if ($r !== false) {
+                $response['ret'] = 0;
+            }
+            else {
+                $response['ret'] = 1;
+            }
+        break;
+        case 'ue':// update experience
+            if (isset($req['id']) === false ||
+                isset($req['place']) === false ||
+                isset($req['task']) === false ||
+                isset($req['start']) === false ||
+                isset($req['end']) === false) {
+                $response['ret'] = -2;
+            }
+
+            $r = PROFILE::updateexperience($link, $req['id'], $req['place'], $req['task'], $req['start'], $req['end']);
+            if ($r !== false) {
+                $response['ret'] = 0;
+            }
+            else {
+                $response['ret'] = 1;
+            }
+        break;
         case 'cl':// current location
             $address = Geometry::covertToAddress($req['lat'], $req['lng']);
             if ($address !== false) {

@@ -105,6 +105,30 @@ class PROFILE
         return $r;
     }
 
+
+    static function updatequalification($link, $id, $degree, $school, $major, $start, $end)
+    {
+        $r = false;
+        $sql = "UPDATE qualifications SET degree=?, school=?, major=?, start=?, end=? WHERE id = ?";
+
+        if($stmt = mysqli_prepare($link, $sql)) {
+            mysqli_stmt_bind_param($stmt, "sssssi", $degree, $school, $major, $start, $end, $id);
+            if(mysqli_stmt_execute($stmt)){
+                $r = true;
+            }
+            else {
+                $r = false;
+            }
+            mysqli_stmt_close($stmt);
+        }
+        else {
+            echo("Error description: " . mysqli_error($link));
+            $r = false;
+        }
+
+        return $r;
+    }
+
     static function getexperiencesbyuser($link, $userid) {
         $sql = "SELECT * FROM work_experience WHERE user_id = ? ORDER BY start DESC";
         $rows = [];
@@ -137,6 +161,29 @@ class PROFILE
 
         if($stmt = mysqli_prepare($link, $sql)) {
             mysqli_stmt_bind_param($stmt, "issss", $userid, $place, $task, $start, $end);
+            if(mysqli_stmt_execute($stmt)){
+                $r = true;
+            }
+            else {
+                $r = false;
+            }
+            mysqli_stmt_close($stmt);
+        }
+        else {
+            echo("Error description: " . mysqli_error($link));
+            $r = false;
+        }
+
+        return $r;
+    }
+
+    static function updateexperience($link, $id, $place, $task, $start, $end)
+    {
+        $r = false;
+        $sql = "UPDATE work_experience SET place=?, task=?, start=?, end=? WHERE id=?";
+
+        if($stmt = mysqli_prepare($link, $sql)) {
+            mysqli_stmt_bind_param($stmt, "ssssi", $place, $task, $start, $end, $id);
             if(mysqli_stmt_execute($stmt)){
                 $r = true;
             }
