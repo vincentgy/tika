@@ -232,11 +232,11 @@ if(isset($req['a'])) {
             }
         break;
         case 'gal':// get application list
-            if (isset($req['position_id']) === false) {
+            if (isset($req['p']) === false) {
                 $response['ret'] = -2;
             }
 
-            $r = APPLICATION::updateexperience($link, $req['position_id']);
+            $r = APPLICATION::updateexperience($link, $req['p']);
             if ($r !== false) {
                 $response['ret'] = 0;
                 $response['data'] = $r;
