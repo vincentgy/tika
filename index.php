@@ -175,7 +175,7 @@ if(isset($req['a'])) {
                 $response['ret'] = -2;
             }
 
-            $r = PROFILE::update($link, $req['u'], $req['d'], $req['p'], $req['s'],  $req['q'], $req['w']);
+            $r = PROFILE::update($link, $req['user_id'], $req['description'], $req['phone'], $req['skills'],  $req['qualifications'], $req['experiences']);
             if ($r !== false) {
                 $response['ret'] = 0;
             }

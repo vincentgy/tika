@@ -17,7 +17,7 @@ class PROFILE
             }
             mysqli_stmt_close($stmt);
             foreach($qualifications as $item) {
-                PROFILE::addapplication($link, $userid, $item['degree'], $item['school'], $item['major'], $item['start'], $item['end']);
+                PROFILE::addqualification($link, $userid, $item['degree'], $item['school'], $item['major'], $item['start'], $item['end']);
             }
             foreach($experiences as $item) {
                 PROFILE::addexperience($link, $userid, $item['place'], $item['task'], $item['start'], $item['end']);
@@ -31,7 +31,7 @@ class PROFILE
         return $r;
     }
 
-    static function addapplication($link, $userid, $degree, $school, $major, $start, $end)
+    static function addqualification($link, $userid, $degree, $school, $major, $start, $end)
     {
         $r = false;
         $sql = "INSERT INTO qualifications (user_id, degree, school, major, start, end) VALUES (?,?,?,?,?,?)";
