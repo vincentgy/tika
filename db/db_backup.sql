@@ -156,7 +156,7 @@ CREATE TABLE `position_category` (
 
 LOCK TABLES `position_category` WRITE;
 /*!40000 ALTER TABLE `position_category` DISABLE KEYS */;
-INSERT INTO `position_category` VALUES (2,6),(3,6),(4,1);
+INSERT INTO `position_category` VALUES (2,6),(3,6),(4,1),(5,4),(2,5),(6,1),(7,1);
 /*!40000 ALTER TABLE `position_category` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -186,7 +186,7 @@ CREATE TABLE `positions` (
   `timestamp` int(11) NOT NULL,
   `active` int(1) DEFAULT '1',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -195,7 +195,7 @@ CREATE TABLE `positions` (
 
 LOCK TABLES `positions` WRITE;
 /*!40000 ALTER TABLE `positions` DISABLE KEYS */;
-INSERT INTO `positions` VALUES (1,'gopd','1678',NULL,3,1,2,10000,20000,1,2,12,'325 east coast road',NULL,NULL,1532960591,1),(2,'designer','soul machine',NULL,3,1,2,10000,20000,1,1,1,'57 customer street',NULL,NULL,1533052691,1),(3,'designer','soul machine',NULL,3,1,2,10000,20000,1,1,1,'85 wakefield street',-36.855520700,174.765643100,1533052794,1),(4,'weekend morning kitchen hand','edit',NULL,3,1,3,10000,20000,1,1,1,'edit',-36.847260400,174.767113500,1533106828,1);
+INSERT INTO `positions` VALUES (1,'gopd','1678',NULL,3,1,2,10000,20000,1,2,12,'325 east coast road',NULL,NULL,1532960591,1),(2,'designer','soul machine',NULL,3,1,2,10000,20000,1,1,1,'57 customer street',NULL,NULL,1533052691,1),(3,'designer','soul machine',NULL,3,1,2,10000,20000,1,1,1,'85 wakefield street',-36.855520700,174.765643100,1533052794,1),(4,'weekend morning kitchen hand','edit',NULL,3,1,3,10000,20000,1,1,1,'edit',-36.847260400,174.767113500,1533106828,1),(5,'å‰ç«¯','æ–¹æ­£',NULL,3,1,2,10000,20000,1,1,1,'éšæ„',NULL,NULL,1533649531,1),(6,'åŽç«¯php','å¤©æ‰å…¬å¸','åŽç«¯å¼€å‘èŒä½\n',3,1,1,10000,20000,1,1,1,'325 east',NULL,NULL,1533803145,1),(7,'åŽç«¯php','å¤©æ‰å…¬å¸','åŽç«¯å¼€å‘èŒä½\n',3,1,1,10000,20000,1,1,1,'325 east',NULL,NULL,1533803158,1);
 /*!40000 ALTER TABLE `positions` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -212,8 +212,8 @@ CREATE TABLE `qualifications` (
   `degree` varchar(50) NOT NULL,
   `school` varchar(255) NOT NULL,
   `major` varchar(255) DEFAULT NULL,
-  `start_year` int(4) NOT NULL,
-  `end_year` int(4) NOT NULL,
+  `start` varchar(6) DEFAULT NULL,
+  `end` varchar(6) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -315,6 +315,9 @@ CREATE TABLE `users` (
   `name` varchar(255) DEFAULT NULL,
   `created_at` int(11) DEFAULT NULL,
   `lastlogin` int(11) DEFAULT NULL,
+  `description` varchar(255) DEFAULT NULL,
+  `phone` varchar(32) DEFAULT NULL,
+  `skills` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `email` (`email`)
 ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=latin1;
@@ -326,8 +329,35 @@ CREATE TABLE `users` (
 
 LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` VALUES (2,'vincent.y.guo@hotmail.com','e10adc3949ba59abbe56e057f20f883e',NULL,NULL,1530717389),(3,'215566435@qq.com','metal_gear2',NULL,1531149150,1531149150);
+INSERT INTO `users` VALUES (2,'vincent.y.guo@hotmail.com','e10adc3949ba59abbe56e057f20f883e',NULL,NULL,1530717389,NULL,NULL,NULL),(3,'215566435@qq.com','metal_gear2',NULL,1531149150,1531149150,NULL,NULL,NULL);
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `work_experience`
+--
+
+DROP TABLE IF EXISTS `work_experience`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `work_experience` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `user_id` int(11) DEFAULT NULL,
+  `place` varchar(255) DEFAULT NULL,
+  `task` varchar(255) DEFAULT NULL,
+  `start` varchar(6) DEFAULT NULL,
+  `end` varchar(6) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `work_experience`
+--
+
+LOCK TABLES `work_experience` WRITE;
+/*!40000 ALTER TABLE `work_experience` DISABLE KEYS */;
+/*!40000 ALTER TABLE `work_experience` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
@@ -339,4 +369,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2018-08-04 13:37:21
+-- Dump completed on 2018-08-14 16:39:30
