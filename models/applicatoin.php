@@ -1,4 +1,5 @@
 <?php
+include_once "user.php";
 
 class APPLICATION
 {
@@ -52,6 +53,29 @@ class APPLICATION
         }
 
         return $r;
+    }
+
+    static function getapplicationsbyjob($link, $positionid) {
+        $sql = "SELECT user_id, timestamp FROM applications WHERE position_id = ?";
+        $rows = [];
+
+        if($stmt = mysqli_prepare($link, $sql)) {
+            // Bind variables to the prepared statement as parameters
+            mysqli_stmt_bind_param($stmt, "i", $positionid);
+            if(mysqli_stmt_execute($stmt)) {
+                $result = mysqli_stmt_get_result($stmt);
+
+                while ($row=mysqli_fetch_assoc($result)) {
+                    $r = USER::getuserbyid($link, $row['user_id']);
+                    $r['timestamp'] = $row['timestamp'];
+                    $rows[] = $r;
+                }
+                // Free result set
+                mysqli_free_result($result);
+            }
+        }
+        error_log(print_r($rows, true));
+        return $rows;
     }
 }
 ?>

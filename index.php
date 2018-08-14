@@ -231,6 +231,20 @@ if(isset($req['a'])) {
                 $response['ret'] = 1;
             }
         break;
+        case 'gal':// get application list
+            if (isset($req['position_id']) === false) {
+                $response['ret'] = -2;
+            }
+
+            $r = APPLICATION::updateexperience($link, $req['position_id']);
+            if ($r !== false) {
+                $response['ret'] = 0;
+                $response['data'] = $r;
+            }
+            else {
+                $response['ret'] = 1;
+            }
+        break;
         case 'cl':// current location
             $address = Geometry::covertToAddress($req['lat'], $req['lng']);
             if ($address !== false) {

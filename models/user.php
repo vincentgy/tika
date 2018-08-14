@@ -27,6 +27,30 @@ class USER
         return $r;
     }
 
+    static function getuserbyid($link, $userid) {
+        $sql = "SELECT name, email, skills FROM users WHERE id = ?";
+        $r = false;
+
+        if($stmt = mysqli_prepare($link, $sql)) {
+            // Bind variables to the prepared statement as parameters
+            mysqli_stmt_bind_param($stmt, "i", $userid);
+            if(mysqli_stmt_execute($stmt)) {
+                $result = mysqli_stmt_get_result($stmt);
+                
+                if ($row = mysqli_fetch_assoc($result)) {
+                    $r = $row;
+                    mysqli_stmt_close($stmt);
+                }
+            }
+            else {
+                echo("Error description: " . mysqli_error($link));
+                mysqli_stmt_close($stmt);
+            }
+        }
+
+        return $r;
+    }
+
     static function checkemail($link, $email) {
         $sql = "SELECT * FROM users WHERE email = ?";
         $r = false;
@@ -102,7 +126,7 @@ class USER
         return $r;
     }
 
-    
+
 }
 
 ?>
