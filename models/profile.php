@@ -31,6 +31,57 @@ class PROFILE
         return $r;
     }
 
+    static function get($link, $userid) {
+        $sql = "SELECT email, name, description, phone, skills FROM users WHERE id=?";
+        $r = false;
+
+        if($stmt = mysqli_prepare($link, $sql)) {
+            // Bind variables to the prepared statement as parameters
+            mysqli_stmt_bind_param($stmt, "i", $userid);
+            if(mysqli_stmt_execute($stmt)) {
+                $result = mysqli_stmt_get_result($stmt);
+                
+                if ($row = mysqli_fetch_assoc($result)) {
+                    $r = $row;
+                    $r['qualifications'] = PROFILE::getqualificationsbyuser($link, $userid);
+                    $r['experiences'] = PROFILE::getexperiencesbyuser($link, $userid);
+                    mysqli_stmt_close($stmt);
+                }
+            }
+            else {
+                echo("Error description: " . mysqli_error($link));
+                mysqli_stmt_close($stmt);
+            }
+        }
+
+        return $r;
+    }
+
+    static function getqualificationsbyuser($link, $userid) {
+        $sql = "SELECT * FROM qualifications WHERE user_id = ? ORDER BY start DESC";
+        $rows = [];
+
+        if($stmt = mysqli_prepare($link, $sql)) {
+            // Bind variables to the prepared statement as parameters
+            mysqli_stmt_bind_param($stmt, "i", $id);
+            if(mysqli_stmt_execute($stmt)) {
+                $result = mysqli_stmt_get_result($stmt);
+
+                while ($row=mysqli_fetch_assoc($result)) {
+                    $rows[] = $row;
+                }
+                // Free result set
+                mysqli_free_result($result);
+            }
+        }
+        error_log(print_r($rows, true));
+        $region = false;
+        if (count($rows) === 1) {
+            $region = $rows[0]['name'];
+        }
+        return $region;
+    }
+
     static function addqualification($link, $userid, $degree, $school, $major, $start, $end)
     {
         $r = false;
@@ -54,6 +105,30 @@ class PROFILE
         return $r;
     }
 
+    static function getexperiencesbyuser($link, $userid) {
+        $sql = "SELECT * FROM work_experience WHERE user_id = ? ORDER BY start DESC";
+        $rows = [];
+
+        if($stmt = mysqli_prepare($link, $sql)) {
+            // Bind variables to the prepared statement as parameters
+            mysqli_stmt_bind_param($stmt, "i", $id);
+            if(mysqli_stmt_execute($stmt)) {
+                $result = mysqli_stmt_get_result($stmt);
+
+                while ($row=mysqli_fetch_assoc($result)) {
+                    $rows[] = $row;
+                }
+                // Free result set
+                mysqli_free_result($result);
+            }
+        }
+        error_log(print_r($rows, true));
+        $region = false;
+        if (count($rows) === 1) {
+            $region = $rows[0]['name'];
+        }
+        return $region;
+    }
 
     static function addexperience($link, $userid, $place, $task, $start, $end)
     {

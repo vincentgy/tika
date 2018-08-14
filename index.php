@@ -171,13 +171,26 @@ if(isset($req['a'])) {
             }
         break;
         case 'up':// update profile
-            if (isset($req['u']) === false) {
+            if (isset($req['user_id']) === false) {
                 $response['ret'] = -2;
             }
 
             $r = PROFILE::update($link, $req['user_id'], $req['description'], $req['phone'], $req['skills'],  $req['qualifications'], $req['experiences']);
             if ($r !== false) {
                 $response['ret'] = 0;
+            }
+            else {
+                $response['ret'] = 1;
+            }
+        case 'gp':// get profile
+            if (isset($req['user_id']) === false) {
+                $response['ret'] = -2;
+            }
+
+            $r = PROFILE::get($link, $req['user_id']);
+            if ($r !== false) {
+                $response['ret'] = 0;
+                $response['data'] = $r;
             }
             else {
                 $response['ret'] = 1;
