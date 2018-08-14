@@ -3,6 +3,7 @@ include_once "./models/user.php";
 include_once "./models/geometry.php";
 include_once "./models/job.php";
 include_once "./models/session.php";
+include_once "./models/profile.php";
 require_once __DIR__ ."/config.php";
 
 $response = array();
@@ -167,6 +168,19 @@ if(isset($req['a'])) {
                 else {
                     $response['ret'] = 1;
                 }
+            }
+        break;
+        case 'up':// update profile
+            if (isset($req['u']) === false) {
+                $response['ret'] = -2;
+            }
+
+            $r = PROFILE::update($link, $req['u'], $req['d'], $req['p'], $req['s'],  $req['q'], $req['w']);
+            if ($r !== false) {
+                $response['ret'] = 0;
+            }
+            else {
+                $response['ret'] = 1;
             }
         break;
         case 'cl':// current location

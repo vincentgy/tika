@@ -101,6 +101,8 @@ class USER
 
         return $r;
     }
+
+    
 }
 
 ?>
