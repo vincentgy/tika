@@ -229,6 +229,9 @@ class JOB
                 $result = mysqli_stmt_get_result($stmt);
 
                 while ($row=mysqli_fetch_assoc($result)) {
+                    $row['region'] = Address::getregionbyId($link, $row['region_id']);
+                    $row['district'] = Address::getdistrictbyId($link, $row['district_id']);
+
                     if (isset($query['distance']) && isset($location['latitude']) && isset($location['longitude'])) {
                         $dist = Geometry::distance($row['latitude'], $row['longitude'], $location['latitude'], $location['longitude']);
                         error_log(print_r($dist, true));
