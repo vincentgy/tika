@@ -46,7 +46,6 @@ $keyName = $folder . $id . $ext;
 
 
 $url = htmlEntities('https://'. $bucketName . '.s3.us-east-2.amazonaws.com/'. $keyName);
-$response['url'] = $url;
 $sql = false;
 if ($category === 'u') {
 	$sql = 'UPDATE users SET avatar = ? WHERE id = ?';
