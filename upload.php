@@ -7,7 +7,7 @@ $response = array();
 $token = $_GET['token'];
 $category  = $_GET['c'];
 $id  = $_GET['id'];
-$name  = $_GET['n'];
+
 $folder ='';
 if ($category === 'u') {
 	$folder = 'users/';
@@ -15,8 +15,11 @@ if ($category === 'u') {
 else if ($category === 'p') {
 	$folder = 'positions/';
 }
+else if ($category === 'c') {
+	$folder = 'companies/';
+}
 
-$keyName = $folder . $id . '_' . $name;
+$keyName = $folder . $id;
 
 $file = $_FILES["fileToUpload"]['tmp_name'];
 
@@ -42,8 +45,29 @@ $file = $_FILES["fileToUpload"]['tmp_name'];
 	// Now that you have it working, I recommend adding some checks on the files.
 	// Example: Max size, allowed file types, etc.
 
-$response['ret'] = 0;
-$response['url'] = 'https://'. $bucketName . '.s3.us-east-2.amazonaws.com/'. $keyName;
+
+$url = htmlEntities('https://'. $bucketName . '.s3.us-east-2.amazonaws.com/'. $keyName);
+$response['url'] = $url;
+$sql = false;
+if ($category === 'u') {
+	$sql = 'UPDATE users SET avartar = ? WHERE id = ?';
+}
+if($stmt = mysqli_prepare($link, $sql)) {
+    mysqli_stmt_bind_param($stmt, "ss", $url, $id);
+    if(mysqli_stmt_execute($stmt)){
+        $response['ret'] = 0;
+        $response['url'] = $url;
+    }
+    else {
+        $response['ret'] = 1;
+    }
+    mysqli_stmt_close($stmt);
+}
+else {
+	$response['ret'] = 1;
+    $response['error'] = mysqli_error($link);
+}
+
 header('Content-Type: application/json');
 echo json_encode($response);
 ?>
