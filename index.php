@@ -39,6 +39,12 @@ function get_client_ip_server() {
 }
 
 if(isset($req['a'])) {
+
+    if ($req['a'] !== 'ul' && $req['a'] !== 'ur') {
+        if (isset($req['token'])) {
+            SESSION::updatetoken($link, $req['token']);
+        }
+    }
     switch ($req['a']) {
         case 'ul':// user login
             if ($r = USER::checkuser($link, $req['e'], $req['p']) !== false) {
