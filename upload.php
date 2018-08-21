@@ -19,10 +19,9 @@ else if ($category === 'c') {
 	$folder = 'companies/';
 }
 
-$keyName = $folder . $id;
-
 $file = $_FILES["fileToUpload"]['tmp_name'];
-
+$ext = pathinfo($_FILES["fileToUpload"]['name'], PATHINFO_EXTENSION);
+$keyName = $folder . $id . $ext;
 	// Add it to S3
 	try {
 		// Uploaded:
@@ -50,7 +49,7 @@ $url = htmlEntities('https://'. $bucketName . '.s3.us-east-2.amazonaws.com/'. $k
 $response['url'] = $url;
 $sql = false;
 if ($category === 'u') {
-	$sql = 'UPDATE users SET avartar = ? WHERE id = ?';
+	$sql = 'UPDATE users SET avatar = ? WHERE id = ?';
 }
 if($stmt = mysqli_prepare($link, $sql)) {
     mysqli_stmt_bind_param($stmt, "ss", $url, $id);
