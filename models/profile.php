@@ -32,7 +32,7 @@ class PROFILE
     }
 
     static function get($link, $userid) {
-        $sql = "SELECT email, name, description, phone, skills FROM users WHERE id=?";
+        $sql = "SELECT email, name, description, phone, skills, avatar FROM users WHERE id=?";
         $r = false;
 
         if($stmt = mysqli_prepare($link, $sql)) {
