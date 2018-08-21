@@ -21,7 +21,7 @@ else if ($category === 'c') {
 
 $file = $_FILES["fileToUpload"]['tmp_name'];
 $ext = pathinfo($_FILES["fileToUpload"]['name'], PATHINFO_EXTENSION);
-$keyName = $folder . $id . $ext;
+$keyName = $folder . $id . '.' . $ext;
 	// Add it to S3
 	try {
 		// Uploaded:
