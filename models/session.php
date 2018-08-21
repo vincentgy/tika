@@ -1,4 +1,5 @@
 <?php
+include_once("user.php");
 
 class SESSION
 {
@@ -59,10 +60,11 @@ class SESSION
         return $r;
     }
 
-    static function addtoken($link, $user_id, $ipaddress)
+    static function addtoken($link, $email, $ipaddress)
     {
         $r = false;
         $token = SESSION::getToken(32);
+        $user_id = USER::getuseridbyemail($email);
 
         $sql = "INSERT INTO sessions(token, user_id, created_at, expiry_time, ipaddress) VALUES (?,?,UNIX_TIMESTAMP(), UNIX_TIMESTAMP() + 2592000,?)";
 
@@ -80,7 +82,7 @@ class SESSION
             echo("Error description: " . mysqli_error($link));
             $r = false;
         }
-        return $r;
+        return ($r === false) ? $r : $token;
     }
 
     static function updatetoken($link, $token)

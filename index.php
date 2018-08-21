@@ -42,8 +42,9 @@ if(isset($req['a'])) {
     switch ($req['a']) {
         case 'ul':// user login
             if ($r = USER::checkuser($link, $req['e'], $req['p']) !== false) {
-                SESSION::addtoken($link, $r, get_client_ip_server());
+                $token = SESSION::addtoken($link, $r, get_client_ip_server());
                 $response['ret'] = 0;
+                $response['token'] = $token;
             }
             else {
                 $response['ret'] = 1;
