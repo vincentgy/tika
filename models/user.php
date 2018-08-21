@@ -36,10 +36,12 @@ class USER
             mysqli_stmt_bind_param($stmt, "i", $userid);
             if(mysqli_stmt_execute($stmt)) {
                 $result = mysqli_stmt_get_result($stmt);
-                
-                if ($row = mysqli_fetch_assoc($result)) {
-                    $r = $row;
-                    mysqli_stmt_close($stmt);
+                // Get user
+                if (mysqli_num_rows($result) == 1) {
+                    if ($row = mysqli_fetch_assoc($result)) {
+                        $r = $row;
+                        mysqli_stmt_close($stmt);
+                    }
                 }
             }
             else {
