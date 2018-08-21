@@ -13,20 +13,27 @@ $req = $data["param"];
 
 function get_client_ip_server() {
     $ipaddress = '';
-    if ($_SERVER['HTTP_CLIENT_IP'])
+    if (array_key_exists('HTTP_CLIENT_IP', $_SERVER)) {
         $ipaddress = $_SERVER['HTTP_CLIENT_IP'];
-    else if($_SERVER['HTTP_X_FORWARDED_FOR'])
+    }
+    else if(array_key_exists('HTTP_X_FORWARDED_FOR', $_SERVER)) {
         $ipaddress = $_SERVER['HTTP_X_FORWARDED_FOR'];
-    else if($_SERVER['HTTP_X_FORWARDED'])
+    }
+    else if(array_key_exists('HTTP_X_FORWARDED', $_SERVER)) {
         $ipaddress = $_SERVER['HTTP_X_FORWARDED'];
-    else if($_SERVER['HTTP_FORWARDED_FOR'])
+    }
+    else if(array_key_exists('HTTP_FORWARDED_FOR', $_SERVER)) {
         $ipaddress = $_SERVER['HTTP_FORWARDED_FOR'];
-    else if($_SERVER['HTTP_FORWARDED'])
+    }
+    else if(array_key_exists('HTTP_FORWARDED', $_SERVER)) {
         $ipaddress = $_SERVER['HTTP_FORWARDED'];
-    else if($_SERVER['REMOTE_ADDR'])
+    }
+    else if(array_key_exists('REMOTE_ADDR', $_SERVER)) {
         $ipaddress = $_SERVER['REMOTE_ADDR'];
-    else
+    }
+    else {
         $ipaddress = 'UNKNOWN';
+    }
 
     return $ipaddress;
 }
