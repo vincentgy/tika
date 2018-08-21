@@ -39,7 +39,7 @@ class USER
                 // Get user
                 if (mysqli_num_rows($result) == 1) {
                     if ($row = mysqli_fetch_assoc($result)) {
-                        $r = $row;
+                        $r = $row['id'];
                         mysqli_stmt_close($stmt);
                     }
                 }
@@ -48,9 +48,6 @@ class USER
                 echo("Error description: " . mysqli_error($link));
                 mysqli_stmt_close($stmt);
             }
-        }
-        if ($r!== false) {
-            $r = $r[0];
         }
         return $r;
     }

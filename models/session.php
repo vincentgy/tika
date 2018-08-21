@@ -64,7 +64,7 @@ class SESSION
     {
         $r = false;
         $token = SESSION::getToken(32);
-        $user_id = USER::getuseridbyemail($email);
+        $user_id = USER::getuseridbyemail($link, $email);
 
         $sql = "INSERT INTO sessions(token, user_id, created_at, expiry_time, ipaddress) VALUES (?,?,UNIX_TIMESTAMP(), UNIX_TIMESTAMP() + 2592000,?)";
 
