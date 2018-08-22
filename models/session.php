@@ -106,5 +106,30 @@ class SESSION
         }
         return $r;
     }
+
+    static function getuseridbytoken($link, $token) {
+        $sql = "SELECT user_id FROM sessions WHERE token = ?";
+        $r = false;
+
+        if($stmt = mysqli_prepare($link, $sql)) {
+            // Bind variables to the prepared statement as parameters
+            mysqli_stmt_bind_param($stmt, "s", $token);
+            if(mysqli_stmt_execute($stmt)) {
+                $result = mysqli_stmt_get_result($stmt);
+                // Get user
+                if (mysqli_num_rows($result) == 1) {
+                    if ($row = mysqli_fetch_assoc($result)) {
+                        $r = $row['user_id'];
+                        mysqli_stmt_close($stmt);
+                    }
+                }
+            }
+            else {
+                echo("Error description: " . mysqli_error($link));
+                mysqli_stmt_close($stmt);
+            }
+        }
+        return $r;
+    }
 }
 ?>

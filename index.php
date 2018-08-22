@@ -38,10 +38,13 @@ function get_client_ip_server() {
     return $ipaddress;
 }
 
+$user_id = false;
+
 if(isset($req['a'])) {
 
     if ($req['a'] !== 'ul' && $req['a'] !== 'ur') {
         if (isset($req['token'])) {
+            $user_id  = SESSION::getuseridbytoken($link, $req['token']);
             SESSION::updatetoken($link, $req['token']);
         }
     }
@@ -197,11 +200,11 @@ if(isset($req['a'])) {
                 $response['ret'] = 1;
             }
         case 'gp':// get profile
-            if (isset($req['user_id']) === false) {
+            if ($user_id === false) {
                 $response['ret'] = -2;
             }
 
-            $r = PROFILE::get($link, $req['user_id']);
+            $r = PROFILE::get($link, $user_id);
             if ($r !== false) {
                 $response['ret'] = 0;
                 $response['data'] = $r;
