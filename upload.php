@@ -20,7 +20,7 @@ else if ($category === 'p') {
 else if ($category === 'c') {
 	$folder = 'companies/';
 }
-
+error_log(print_r($_FILES, true));
 if (isset($_FILES["fileToUpload"])) {
 	$file = $_FILES["fileToUpload"]['tmp_name'];
 	//$ext = pathinfo($_FILES["fileToUpload"]['name'], PATHINFO_EXTENSION);
