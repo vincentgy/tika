@@ -1,6 +1,7 @@
 <?php
 require_once "./config.php";
 require_once "./s3_config.php";
+require_once "./models/session.php";
 $response = array();
 
 
@@ -11,6 +12,7 @@ $id  = $_GET['id'];
 $folder ='';
 if ($category === 'u') {
 	$folder = 'users/';
+	$id = SESSION::getuseridbytoken($link, $token);
 }
 else if ($category === 'p') {
 	$folder = 'positions/';
