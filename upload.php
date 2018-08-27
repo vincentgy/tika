@@ -10,9 +10,11 @@ $category  = $_GET['c'];
 $id  = $_GET['id'];
 
 $folder ='';
+$filename = '';
 if ($category === 'u') {
 	$folder = 'users/';
 	$id = SESSION::getuseridbytoken($link, $token);
+	$filename = $id . '_' . time() . SESSION::crypto_rand_secure(0, 4);
 }
 else if ($category === 'p') {
 	$folder = 'positions/';
@@ -24,7 +26,8 @@ else if ($category === 'c') {
 if (isset($_FILES["fileToUpload"])) {
 	$file = $_FILES["fileToUpload"]['tmp_name'];
 	$ext = pathinfo($_FILES["fileToUpload"]['name'], PATHINFO_EXTENSION);
-	$keyName = (strlen($ext) > 0) ? $folder . $id . '.' . $ext : $folder . $id;
+
+	$keyName = (strlen($ext) > 0) ? $folder . $filename . '.' . $ext : $folder . $filename;
 		// Add it to S3
 		try {
 			// Uploaded:
