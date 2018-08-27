@@ -230,12 +230,11 @@ class JOB
                     $row['region'] = Address::getregionbyId($link, $row['region_id']);
                     $row['district'] = Address::getdistrictbyId($link, $row['district_id']);
 
-                    if (isset($query['distance']) && isset($location['latitude']) && isset($location['longitude'])) {
+                    if (isset($location['latitude']) && isset($location['longitude'])) {
                         $dist = Geometry::distance($row['latitude'], $row['longitude'], $location['latitude'], $location['longitude']);
                         error_log(print_r($dist, true));
-                        if ($dist <= $query['distance']) {
-                            $rows[] = $row;
-                        }
+                        $row['distance'] = $dist;
+                        $rows[] = $row;
                     }
                     else {
                         $rows[] = $row;
