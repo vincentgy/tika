@@ -1,7 +1,7 @@
 <?php
 include_once "./models/chat.php";
 include_once "./models/session.php";
-require_once __DIR__ ."/config.php";
+include_once __DIR__ ."/config.php";
 
 $host = '18.222.175.208'; //host
 $port = '9527'; //port
@@ -86,12 +86,6 @@ while (true) {
 			$msg = json_decode($received_text); //json decode
 
 			handle_msg($msg, $changed_socket);
-			$user_name = $msg->name; //sender name
-			$user_message = htmlspecialchars($msg->message, ENT_QUOTES); //message text
-
-			//prepare data to be sent to client
-			$response_text = mask(json_encode(array('type' => 'usermsg', 'name' => $user_name, 'message' => $user_message)));
-			send_message($response_text); //send data
 			break 2; //exist this loop
 
 		}
