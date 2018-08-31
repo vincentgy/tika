@@ -70,7 +70,7 @@ while (true) {
 				echo 'NEW USER:'.$msg->userId."\n";
 			}
 			$users[$msg->userId][] = $changed_socket;
-			handle_msg($tst_msg);
+			handle_msg($msg);
 			$user_name = $msg->name; //sender name
 			$user_message = htmlspecialchars($msg->message, ENT_QUOTES); //message text
 
@@ -88,7 +88,7 @@ while (true) {
 			socket_getpeername($changed_socket, $ip);
 			unset($clients[$found_socket]);
 			//notify all users about disconnected connection
-			$response = mask(json_encode(array('type' => 'system', 'message' => $_SESSION['username'] . ' disconnected')));
+			$response = mask(json_encode(array('type' => 'system', 'message' => 5 . ' disconnected')));
 			send_message($response);
 		}
 	}
