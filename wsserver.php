@@ -44,8 +44,8 @@ function handle_msg($msg, $socket) {
 		case OPCODE::NEWROOM:
 			$chatId = CHAT::create($link, $msg->users);
 			$response = mask(json_encode(array('opcode' => OPCODE::NEWROOM, 'chatId' => $chatId)));
-			foreach ($msg->users as userId) {
-
+			foreach ($msg->users as $userId) {
+				send_message_to_user($response, $userId);
 			}
 		break;
 		case OPCODE::NEWMSG:
