@@ -1,11 +1,15 @@
 <?php
 include_once "./models/chat.php";
 include_once "./models/session.php";
-include_once __DIR__ ."/config.php";
 
 $host = '18.222.175.208'; //host
 $port = '9527'; //port
 $null = null; //null var
+$link = mysqli_connect('localhost', 'root', 'r00t', 'tikadb');
+// Check connection
+if($link === false){
+	die("ERROR: Could not connect. " . mysqli_connect_error());
+}
 
 //Create TCP/IP sream socket
 $socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
@@ -71,8 +75,6 @@ while (true) {
 		perform_handshaking($header, $socket_new, $host, $port); //perform websocket handshake
 
 		socket_getpeername($socket_new, $ip); //get ip address of connected socket
-		$response = mask(json_encode(array('type' => 'system', 'message' => $_SESSION['username'] . ' connected'))); //prepare json data
-		send_message($response); //notify all users about new connection
 
 		//make room for new socket
 		$found_socket = array_search($socket, $changed);
@@ -98,7 +100,7 @@ while (true) {
 			unset($clients[$found_socket]);
 			//notify all users about disconnected connection
 			$response = mask(json_encode(array('type' => 'system', 'message' => 5 . ' disconnected')));
-			send_message($response);
+			send_message($response, $clients);
 		}
 	}
 }
