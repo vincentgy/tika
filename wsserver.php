@@ -5,9 +5,9 @@ include_once "./models/session.php";
 $host = '18.222.175.208'; //host
 $port = '9527'; //port
 $null = null; //null var
-$link = mysqli_connect('localhost', 'root', 'r00t', 'tikadb');
+$conn = mysqli_connect('localhost', 'root', 'r00t', 'tikadb');
 // Check connection
-if($link === false){
+if($conn === false){
 	die("ERROR: Could not connect. " . mysqli_connect_error());
 }
 
@@ -36,9 +36,10 @@ class OPCODE {
 
 //handle system messages.
 function handle_msg($msg, $socket) {
+	global $conn;
 	switch ($msg->opcode) {
 		case OPCODE::CLIENTID:
-			$userId = SESSION::getuseridbytoken($link, $msg->token);
+			$userId = SESSION::getuseridbytoken($conn, $msg->token);
 			if (!array_key_exists($userId, $users)) {
 				$users[$userId] = array();
 				echo 'NEW USER:'.$userId."\n";
@@ -46,14 +47,14 @@ function handle_msg($msg, $socket) {
 			$users[$userId][] = $socket;
 		break;
 		case OPCODE::NEWROOM:
-			$chatId = CHAT::create($link, $msg->users);
+			$chatId = CHAT::create($conn, $msg->users);
 			$response = mask(json_encode(array('opcode' => OPCODE::NEWROOM, 'chatId' => $chatId)));
 			foreach ($msg->users as $userId) {
 				send_message_to_user($response, $userId);
 			}
 		break;
 		case OPCODE::NEWMSG:
-			CHAT::addchatmessage($link, $msg->chatId, $msg->userId, $msg->message);
+			CHAT::addchatmessage($conn, $msg->chatId, $msg->userId, $msg->message);
 			$msg->timestamp = time();
 			send_message_to_room($msg, $msg->chatId);
 		break;
