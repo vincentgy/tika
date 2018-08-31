@@ -1,6 +1,9 @@
 <?php
+include_once "./models/chat.php";
+require_once __DIR__ ."/config.php";
+
 $host = '18.222.175.208'; //host
-$port = '1089'; //port
+$port = '9527'; //port
 $null = null; //null var
 
 //Create TCP/IP sream socket
@@ -13,6 +16,27 @@ socket_bind($socket, 0, $port);
 socket_listen($socket);
 //create & add listning socket to the list
 $clients = array($socket);
+$users  = array();
+$rooms  = array();
+
+class OPCODE {
+	const NEWROOM = 1;
+	const JOIN   =2;
+	const HIST   =3;
+	const NEWMSG = 4;
+	const OLDMSG = 5;
+}
+
+
+//handle system messages.
+function handle_msg($msg) {
+	switch ($msg->opcode) {
+		case OPCODE::NEWROOM:
+			$id = CHAT::create($link, $msg->users);
+		break;
+	}
+}
+
 //start endless loop, so that our script doesn't stop
 while (true) {
 	//manage multipal connections
@@ -40,9 +64,15 @@ while (true) {
 		//check for any incomming data
 		while (socket_recv($changed_socket, $buf, 1024, 0) >= 1) {
 			$received_text = unmask($buf); //unmask data
-			$tst_msg = json_decode($received_text); //json decode
-			$user_name = $tst_msg->name; //sender name
-			$user_message = htmlspecialchars($tst_msg->message, ENT_QUOTES); //message text
+			$msg = json_decode($received_text); //json decode
+			if (!array_key_exists($msg->userId, $users)) {
+				$users[$msg->userId] = array();
+				echo 'NEW USER:'.$msg->userId."\n";
+			}
+			$users[$msg->userId][] = $changed_socket;
+			handle_msg($tst_msg);
+			$user_name = $msg->name; //sender name
+			$user_message = htmlspecialchars($msg->message, ENT_QUOTES); //message text
 
 			//prepare data to be sent to client
 			$response_text = mask(json_encode(array('type' => 'usermsg', 'name' => $user_name, 'message' => $user_message)));
