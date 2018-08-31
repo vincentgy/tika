@@ -1,5 +1,6 @@
 <?php
 include_once "./models/chat.php";
+include_once "./models/session.php";
 require_once __DIR__ ."/config.php";
 
 $host = '18.222.175.208'; //host
@@ -20,19 +21,37 @@ $users  = array();
 $rooms  = array();
 
 class OPCODE {
-	const NEWROOM = 1;
-	const JOIN   =2;
-	const HIST   =3;
-	const NEWMSG = 4;
-	const OLDMSG = 5;
+	const CLIENTID = 1;
+	const NEWROOM = 2;
+	const JOIN   =3;
+	const HIST   =4;
+	const NEWMSG = 5;
+	const OLDMSG = 6;
 }
 
 
 //handle system messages.
-function handle_msg($msg) {
+function handle_msg($msg, $socket) {
 	switch ($msg->opcode) {
+		case OPCODE::CLIENTID:
+			$userId = SESSION::getuseridbytoken($link, $msg->token);
+			if (!array_key_exists($userId, $users)) {
+				$users[$userId] = array();
+				echo 'NEW USER:'.$userId."\n";
+			}
+			$users[$userId][] = $socket;
+		break;
 		case OPCODE::NEWROOM:
-			$id = CHAT::create($link, $msg->users);
+			$chatId = CHAT::create($link, $msg->users);
+			$response = mask(json_encode(array('opcode' => OPCODE::NEWROOM, 'chatId' => $chatId)));
+			foreach ($msg->users as userId) {
+
+			}
+		break;
+		case OPCODE::NEWMSG:
+			CHAT::addchatmessage($link, $msg->chatId, $msg->userId, $msg->message);
+			$msg->timestamp = time();
+			send_message_to_room($msg, $msg->chatId);
 		break;
 	}
 }
@@ -65,12 +84,8 @@ while (true) {
 		while (socket_recv($changed_socket, $buf, 1024, 0) >= 1) {
 			$received_text = unmask($buf); //unmask data
 			$msg = json_decode($received_text); //json decode
-			if (!array_key_exists($msg->userId, $users)) {
-				$users[$msg->userId] = array();
-				echo 'NEW USER:'.$msg->userId."\n";
-			}
-			$users[$msg->userId][] = $changed_socket;
-			handle_msg($msg);
+
+			handle_msg($msg, $changed_socket);
 			$user_name = $msg->name; //sender name
 			$user_message = htmlspecialchars($msg->message, ENT_QUOTES); //message text
 
@@ -96,10 +111,21 @@ while (true) {
 // close the listening socket
 socket_close($sock);
 
-function send_message($msg)
+function send_message_to_user($msg, $userId)
 {
-	global $clients;
-	foreach ($clients as $changed_socket) {
+	global $users;
+	return send_message($msg, $users[$userId]);
+}
+
+function send_message_to_room($msg, $roomId)
+{
+	global $rooms;
+	return send_message($msg, $rooms[$roomId]);
+}
+
+function send_message($msg, $socks)
+{
+	foreach ($socks as $changed_socket) {
 		@socket_write($changed_socket, $msg, strlen($msg));
 	}
 	return true;
