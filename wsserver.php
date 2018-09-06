@@ -53,6 +53,23 @@ function handle_msg($msg, $socket) {
 				send_message_to_user($response, $userId);
 			}
 		break;
+		case OPCODE::JOIN:
+			$chat_users = CHAT::getparticipants($conn, $msg->chatId);
+			if (!array_key_exists($msg->chatId, $rooms)) {
+				$rooms[$msg->chatId] = array();
+				echo 'NEW USER:'.$userId."\n";
+			}
+			$socks = array($socket);
+			$rooms[$msg->chatId][] = $socket;
+			foreach ($chat_users as $userId) {
+				if ($userId !== $msg->userId) {
+					$response = mask(json_encode(array('opcode' => OPCODE::JOIN, 'chatId' => $msg->chatId, 'userId' => $userId)));
+					send_message($response, $socks);
+				}
+			}
+			$response = mask(json_encode(array('opcode' => OPCODE::JOIN, 'chatId' => $msg->chatId, 'userId' => $msg->userId)));
+			send_message($response, $socks);
+		break;
 		case OPCODE::NEWMSG:
 			CHAT::addchatmessage($conn, $msg->chatId, $msg->userId, $msg->message);
 			$msg->timestamp = time();

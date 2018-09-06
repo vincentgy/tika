@@ -97,6 +97,25 @@ class CHAT
         return $r;
     }
 
+    static function getparticipants($link, $chat_id) {
+        $sql = "SELECT user_id FROM chat_users WHERE chat_id = ?";
+        $rows = [];
+
+        if($stmt = mysqli_prepare($link, $sql)) {
+            // Bind variables to the prepared statement as parameters
+            mysqli_stmt_bind_param($stmt, "i", $chat_id);
+            if(mysqli_stmt_execute($stmt)) {
+                $result = mysqli_stmt_get_result($stmt);
+                while ($row=mysqli_fetch_assoc($result)) {
+                    $rows[] = $row;
+                }
+                // Free result set
+                mysqli_free_result($result);
+            }
+        }
+        return $rows;
+    }
+
     static function getnewmessages($link, $chat_id, $user_id, $last_seen) {
         $sql = "SELECT * FROM chat_messages WHERE chat_id = ? AND user_id = ? id > ? ORDER BY id DESC";
         $rows = [];
