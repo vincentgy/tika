@@ -57,7 +57,7 @@ function handle_msg($msg, $socket) {
 			$chat_users = CHAT::getparticipants($conn, $msg->chatId);
 			if (!array_key_exists($msg->chatId, $rooms)) {
 				$rooms[$msg->chatId] = array();
-				echo 'NEW USER:'.$userId."\n";
+				echo 'USER:'.$msg->userId.' JOIN ROOM '. $msg->chatId. "\n";
 			}
 			$socks = array($socket);
 			$rooms[$msg->chatId][] = $socket;
