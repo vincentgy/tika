@@ -107,7 +107,7 @@ class CHAT
             if(mysqli_stmt_execute($stmt)) {
                 $result = mysqli_stmt_get_result($stmt);
                 while ($row=mysqli_fetch_assoc($result)) {
-                    $rows[] = $row;
+                    $rows[] = $row['user_id'];
                 }
                 // Free result set
                 mysqli_free_result($result);
