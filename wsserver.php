@@ -40,6 +40,7 @@ class OPCODE {
 //handle system messages.
 function handle_msg($msg, $socket) {
 	global $conn, $users, $rooms;
+	echo 'MSG:'.$msg."\n";
 	switch ($msg->opcode) {
 		case OPCODE::CLIENTID:
 			$userId = SESSION::getuseridbytoken($conn, $msg->token);
