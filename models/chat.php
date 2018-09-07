@@ -58,8 +58,8 @@ class CHAT
         if($stmt = mysqli_prepare($link, $sql)) {
             mysqli_stmt_bind_param($stmt, "iis", $chat_id, $user_id, $message);
             if(mysqli_stmt_execute($stmt)){
-                 $new_id = mysqli_insert_id($link);
-                $r = true;
+                $new_id = mysqli_insert_id($link);
+                $r = $new_id;
             }
             else {
                 $r = false;
@@ -156,12 +156,38 @@ class CHAT
 
     static function getnewmessages($link, $chat_id, $user_id) {
         $last_seen = CHAT::getlastseen($link, $chat_id, $user_id);
-        $sql = "SELECT * FROM chat_messages WHERE chat_id = ? AND id > ? ORDER BY id DESC";
+        $sql = "SELECT * FROM chat_messages WHERE chat_id = ? AND id > ? ORDER BY id ASC";
         $rows = [];
 
         if($stmt = mysqli_prepare($link, $sql)) {
             // Bind variables to the prepared statement as parameters
             mysqli_stmt_bind_param($stmt, "ii", $chat_id, $last_seen);
+            if(mysqli_stmt_execute($stmt)) {
+                $result = mysqli_stmt_get_result($stmt);
+                while ($row=mysqli_fetch_assoc($result)) {
+                    $rows[] = $row;
+                }
+                // Free result set
+                mysqli_free_result($result);
+            }
+        }
+        return $rows;
+    }
+
+    static function gethistmessages($link, $chat_id, $user_id, $start, $count) {
+        $last_seen = CHAT::getlastseen($link, $chat_id, $user_id);
+        $sql = ($start === 0) ? "SELECT * FROM chat_messages WHERE chat_id = ? ORDER BY id DESC LIMIT ?" :
+                "SELECT * FROM chat_messages WHERE chat_id = ? AND id < ? ORDER BY id DESC LIMIT ?";
+        $rows = [];
+
+        if($stmt = mysqli_prepare($link, $sql)) {
+            // Bind variables to the prepared statement as parameters
+            if ($start === 0) {
+                mysqli_stmt_bind_param($stmt, "ii", $chat_id, $count);
+            }
+            else {
+                mysqli_stmt_bind_param($stmt, "iii", $chat_id, $start, $count);
+            }
             if(mysqli_stmt_execute($stmt)) {
                 $result = mysqli_stmt_get_result($stmt);
                 while ($row=mysqli_fetch_assoc($result)) {
