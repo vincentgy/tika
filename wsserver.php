@@ -26,11 +26,12 @@ $rooms  = array();
 
 class OPCODE {
 	const CLIENTID = 1;
-	const NEWROOM = 2;
-	const JOIN   =3;
-	const HIST   =4;
-	const NEWMSG = 5;
-	const OLDMSG = 6;
+	const CHATLIST = 2;
+	const NEWROOM = 3;
+	const JOIN   =4;
+	const HIST   =5;
+	const NEWMSG = 6;
+	const OLDMSG = 7;
 }
 
 
@@ -46,7 +47,7 @@ function handle_msg($msg, $socket) {
 			echo 'USER:'.$userId." FETCH CHAT LIST\n";
 			$users[$userId][] = $socket;
 			$chats = CHAT::getchatlist($conn, $userId);
-			$response = mask(json_encode(array('opcode' => OPCODE::NEWROOM, 'chatList' => $chats)));
+			$response = mask(json_encode(array('opcode' => OPCODE::CHATLIST, 'chatList' => $chats)));
 			send_message($response, $socket);
 		break;
 		case OPCODE::NEWROOM:
@@ -74,8 +75,8 @@ function handle_msg($msg, $socket) {
 		break;
 		case OPCODE::NEWMSG:
 			CHAT::addchatmessage($conn, $msg->chatId, $msg->userId, $msg->message);
-			$msg->timestamp = time();
-			send_message_to_room($msg, $msg->chatId);
+			$response = mask(json_encode(array('opcode' => OPCODE::NEWMSG, 'chatId' => $msg->chatId, 'userId' => $msg->userId, 'message' => $msg->message, 'timestamp' => time())));
+			send_message_to_room($response, $msg->chatId);
 		break;
 	}
 }
