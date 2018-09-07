@@ -42,9 +42,12 @@ function handle_msg($msg, $socket) {
 			$userId = SESSION::getuseridbytoken($conn, $msg->token);
 			if (!array_key_exists($userId, $users)) {
 				$users[$userId] = array();
-				echo 'NEW USER:'.$userId."\n";
 			}
+			echo 'USER:'.$userId." FETCH CHAT LIST\n";
 			$users[$userId][] = $socket;
+			$chats = CHAT::getchatlist($conn, $userId);
+			$response = mask(json_encode(array('opcode' => OPCODE::NEWROOM, 'chatList' => $chats)));
+			send_message($response, $socket);
 		break;
 		case OPCODE::NEWROOM:
 			$chatId = CHAT::create($conn, $msg->users);
@@ -57,18 +60,17 @@ function handle_msg($msg, $socket) {
 			$chat_users = CHAT::getparticipants($conn, $msg->chatId);
 			if (!array_key_exists($msg->chatId, $rooms)) {
 				$rooms[$msg->chatId] = array();
-				echo 'USER:'.$msg->userId.' JOIN ROOM '. $msg->chatId. "\n";
 			}
-			$socks = array($socket);
+			echo 'USER:'.$msg->userId.' JOIN ROOM '. $msg->chatId. "\n";
 			$rooms[$msg->chatId][] = $socket;
 			foreach ($chat_users as $userId) {
 				if ($userId !== $msg->userId) {
 					$response = mask(json_encode(array('opcode' => OPCODE::JOIN, 'chatId' => $msg->chatId, 'userId' => $userId)));
-					send_message($response, $socks);
+					send_message($response, $socket);
 				}
 			}
 			$response = mask(json_encode(array('opcode' => OPCODE::JOIN, 'chatId' => $msg->chatId, 'userId' => $msg->userId)));
-			send_message($response, $socks);
+			send_message($response, $socket);
 		break;
 		case OPCODE::NEWMSG:
 			CHAT::addchatmessage($conn, $msg->chatId, $msg->userId, $msg->message);
@@ -118,7 +120,7 @@ while (true) {
 			unset($clients[$found_socket]);
 			//notify all users about disconnected connection
 			$response = mask(json_encode(array('type' => 'system', 'message' => 5 . ' disconnected')));
-			send_message($response, $clients);
+			send_message_to_socks($response, $clients);
 		}
 	}
 }
@@ -128,20 +130,25 @@ socket_close($sock);
 function send_message_to_user($msg, $userId)
 {
 	global $users;
-	return send_message($msg, $users[$userId]);
+	return send_message_to_socks($msg, $users[$userId]);
 }
 
 function send_message_to_room($msg, $roomId)
 {
 	global $rooms;
-	return send_message($msg, $rooms[$roomId]);
+	return send_message_to_socks($msg, $rooms[$roomId]);
 }
 
-function send_message($msg, $socks)
+function send_message_to_socks($msg, $socks)
 {
 	foreach ($socks as $changed_socket) {
 		@socket_write($changed_socket, $msg, strlen($msg));
 	}
+	return true;
+}
+function send_message($msg, $socket)
+{
+	@socket_write($socket, $msg, strlen($msg));
 	return true;
 }
 //Unmask incoming framed message

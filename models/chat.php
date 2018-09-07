@@ -97,6 +97,25 @@ class CHAT
         return $r;
     }
 
+    static function getchatlist($link, $user_id) {
+        $sql = "SELECT DISTINCT(chat_id) FROM chat_users WHERE user_id = ?";
+        $rows = [];
+
+        if($stmt = mysqli_prepare($link, $sql)) {
+            // Bind variables to the prepared statement as parameters
+            mysqli_stmt_bind_param($stmt, "i", $chat_id);
+            if(mysqli_stmt_execute($stmt)) {
+                $result = mysqli_stmt_get_result($stmt);
+                while ($row=mysqli_fetch_assoc($result)) {
+                    $rows[] = $row['chat_id'];
+                }
+                // Free result set
+                mysqli_free_result($result);
+            }
+        }
+        return $rows;
+    }
+
     static function getparticipants($link, $chat_id) {
         $sql = "SELECT user_id FROM chat_users WHERE chat_id = ?";
         $rows = [];
