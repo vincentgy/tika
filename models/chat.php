@@ -156,12 +156,12 @@ class CHAT
 
     static function getnewmessages($link, $chat_id, $user_id) {
         $last_seen = CHAT::getlastseen($link, $chat_id, $user_id);
-        $sql = "SELECT * FROM chat_messages WHERE chat_id = ? AND user_id = ? AND id > ? ORDER BY id DESC";
+        $sql = "SELECT * FROM chat_messages WHERE chat_id = ? AND id > ? ORDER BY id DESC";
         $rows = [];
 
         if($stmt = mysqli_prepare($link, $sql)) {
             // Bind variables to the prepared statement as parameters
-            mysqli_stmt_bind_param($stmt, "iii", $chat_id, $user_id, $last_seen);
+            mysqli_stmt_bind_param($stmt, "ii", $chat_id, $last_seen);
             if(mysqli_stmt_execute($stmt)) {
                 $result = mysqli_stmt_get_result($stmt);
                 while ($row=mysqli_fetch_assoc($result)) {

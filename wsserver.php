@@ -72,7 +72,7 @@ function handle_msg($msg, $socket) {
 			send_message($response, $socket);
 			$messages = CHAT::getnewmessages($conn, $msg->chatId, $msg->userId);
 			foreach ($messages as $msg) {
-				$response = mask(json_encode(array('opcode' => OPCODE::NEWMSG, 'chatId' => $msg->chat_id, 'userId' => $msg->user_id, 'message' => $msg->message, 'timestamp' => $msg->timestamp)));
+				$response = mask(json_encode(array('opcode' => OPCODE::NEWMSG, 'chatId' => $msg['chat_id'], 'userId' => $msg['user_id'], 'message' => $msg['message'], 'timestamp' => $msg['timestamp'])));
 			}
 		break;
 		case OPCODE::NEWMSG:
