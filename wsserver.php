@@ -155,7 +155,7 @@ while (true) {
 			unset($clients[$found_socket]);
 			//notify all users about disconnected connection
 			$response = mask(json_encode(array('type' => 'system', 'message' => 5 . ' disconnected')));
-			send_message_to_socks($response, $clients);
+			//send_message_to_socks($response, $clients);
 			echo $found_socket . 'disconnected'. "\n";
 		}
 	}
