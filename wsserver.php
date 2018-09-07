@@ -87,6 +87,10 @@ function handle_msg($msg, $socket) {
 		break;
 		case OPCODE::NEWMSG:
 			$mId = CHAT::addchatmessage($conn, $msg->chatId, $msg->userId, $msg->message);
+			CHAT::updatelastseen($conn, $msg->chatId, $msg->userId, $mId);
+			$response = mask(json_encode(array('opcode' => OPCODE::LASTSEEN, 'chatId' => $msg->chatId, 'userId' => $msg->userId, 'messageId' => $mId)));
+			send_message_to_user($response, $msg->userId);
+			//update broadcast NEWMSG to room.
 			$response = mask(json_encode(array('opcode' => OPCODE::NEWMSG, 'chatId' => $msg->chatId, 'userId' => $msg->userId, 'messageId' => $mId, 'message' => $msg->message, 'timestamp' => time())));
 			send_message_to_room($response, $msg->chatId);
 			echo 'USER:'.$msg->userId.' SEND MESSAGE ' . $msg->message.  ' TO ROOM '. $msg->chatId. "\n";
