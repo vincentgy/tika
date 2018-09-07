@@ -77,6 +77,7 @@ function handle_msg($msg, $socket) {
 			CHAT::addchatmessage($conn, $msg->chatId, $msg->userId, $msg->message);
 			$response = mask(json_encode(array('opcode' => OPCODE::NEWMSG, 'chatId' => $msg->chatId, 'userId' => $msg->userId, 'message' => $msg->message, 'timestamp' => time())));
 			send_message_to_room($response, $msg->chatId);
+			echo 'USER:'.$msg->userId.' SEND MESSAGE ' . $msg->message.  ' TO ROOM '. $msg->chatId. "\n";
 		break;
 	}
 }
@@ -122,6 +123,7 @@ while (true) {
 			//notify all users about disconnected connection
 			$response = mask(json_encode(array('type' => 'system', 'message' => 5 . ' disconnected')));
 			send_message_to_socks($response, $clients);
+			echo $found_socket . 'disconnected'. "\n";
 		}
 	}
 }
