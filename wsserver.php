@@ -39,7 +39,7 @@ class OPCODE {
 
 //handle system messages.
 function handle_msg($msg, $socket) {
-	global $conn, $users, $rooms;
+	global $conn, $users, $rooms, $histIndexes;
 	var_dump($msg);
 	switch ($msg->opcode) {
 		case OPCODE::CLIENTID:
