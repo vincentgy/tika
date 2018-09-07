@@ -65,13 +65,15 @@ function handle_msg($msg, $socket) {
 			echo 'USER:'.$msg->userId.' JOIN ROOM '. $msg->chatId. "\n";
 			$rooms[$msg->chatId][] = $socket;
 			foreach ($chat_users as $userId) {
-				if ($userId !== $msg->userId) {
-					$response = mask(json_encode(array('opcode' => OPCODE::JOIN, 'chatId' => $msg->chatId, 'userId' => $userId)));
-					send_message($response, $socket);
-				}
+				$response = mask(json_encode(array('opcode' => OPCODE::JOIN, 'chatId' => $msg->chatId, 'userId' => $userId)));
+				send_message($response, $socket);
 			}
-			$response = mask(json_encode(array('opcode' => OPCODE::JOIN, 'chatId' => $msg->chatId, 'userId' => $msg->userId)));
+			$response = mask(json_encode(array('opcode' => OPCODE::JOIN, 'chatId' => $msg->chatId, 'userId' => 0)));
 			send_message($response, $socket);
+			$messages = CHAT::getnewmessages($conn, $msg->chatId, $msg->userId);
+			foreach ($messages as $msg) {
+				$response = mask(json_encode(array('opcode' => OPCODE::NEWMSG, 'chatId' => $msg->chat_id, 'userId' => $msg->user_id, 'message' => $msg->message, 'timestamp' => $msg->timestamp)));
+			}
 		break;
 		case OPCODE::NEWMSG:
 			CHAT::addchatmessage($conn, $msg->chatId, $msg->userId, $msg->message);
