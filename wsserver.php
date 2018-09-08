@@ -36,6 +36,9 @@ class OPCODE {
 	const LASTSEEN = 8;
 }
 
+function disconnect($socket) {
+
+}
 
 //handle system messages.
 function handle_msg($msg, $socket) {
@@ -142,11 +145,16 @@ while (true) {
 	foreach ($changed as $changed_socket) {
 		//check for any incomming data
 		while (socket_recv($changed_socket, $buf, 2048, 0) >= 1) {
-			$received_text = unmask($buf); //unmask data
+			if (strlen($buf) < 9) {
+				disconnect($changed_socket);
+			}
+			else {
+				$received_text = unmask($buf); //unmask data
 
-			$msg = json_decode($received_text, true); //json decode
+				$msg = json_decode($received_text, true); //json decode
 
-			handle_msg($msg, $changed_socket);
+				handle_msg($msg, $changed_socket);
+			}
 			break 2; //exist this loop
 
 		}
