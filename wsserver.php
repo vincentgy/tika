@@ -41,9 +41,12 @@ class OPCODE {
 function handle_msg($msg, $socket) {
 	global $conn, $users, $rooms, $histIndexes;
 	var_dump($msg);
-	switch ($msg->opcode) {
+	if (!isset($msg['opcode'])) {
+		return;
+	}
+	switch ($msg['opcode']) {
 		case OPCODE::CLIENTID:
-			$userId = SESSION::getuseridbytoken($conn, $msg->token);
+			$userId = SESSION::getuseridbytoken($conn, $msg['token']);
 			if (!array_key_exists($userId, $users)) {
 				$users[$userId] = array();
 			}
@@ -54,56 +57,56 @@ function handle_msg($msg, $socket) {
 			send_message($response, $socket);
 		break;
 		case OPCODE::NEWROOM:
-			$chatId = CHAT::create($conn, $msg->users);
+			$chatId = CHAT::create($conn, $msg['users']);
 			$response = mask(json_encode(array('opcode' => OPCODE::NEWROOM, 'chatId' => $chatId)));
-			foreach ($msg->users as $userId) {
+			foreach ($msg['users'] as $userId) {
 				send_message_to_user($response, $userId);
 			}
 		break;
 		case OPCODE::JOIN:
-			$chat_users = CHAT::getparticipants($conn, $msg->chatId);
-			if (!array_key_exists($msg->chatId, $rooms)) {
-				$rooms[$msg->chatId] = array();
+			$chat_users = CHAT::getparticipants($conn, $msg['chatId']);
+			if (!array_key_exists($msg['chatId'], $rooms)) {
+				$rooms[$msg['chatId']] = array();
 			}
-			$histKey = $msg->chatId.'#'.$msg->userId;
+			$histKey = $msg['chatId'].'#'.$msg['userId'];
 
 			if (!array_key_exists($histKey, $histIndexes)) {
 				$histIndexes[$histKey] = array();
 			}
 			$histIndexes[$histKey][$socket] = 0;
-			echo 'USER:'.$msg->userId.' JOIN ROOM '. $msg->chatId. "\n";
-			$rooms[$msg->chatId][] = $socket;
+			echo 'USER:'.$msg['userId'].' JOIN ROOM '. $msg['chatId']. "\n";
+			$rooms[$msg['chatId'][] = $socket;
 			foreach ($chat_users as $userId) {
-				$response = mask(json_encode(array('opcode' => OPCODE::JOIN, 'chatId' => $msg->chatId, 'userId' => $userId)));
+				$response = mask(json_encode(array('opcode' => OPCODE::JOIN, 'chatId' => $msg['chatId'], 'userId' => $userId)));
 				send_message($response, $socket);
 			}
-			$response = mask(json_encode(array('opcode' => OPCODE::JOIN, 'chatId' => $msg->chatId, 'userId' => 0)));
+			$response = mask(json_encode(array('opcode' => OPCODE::JOIN, 'chatId' => $msg['chatId'], 'userId' => 0)));
 			send_message($response, $socket);
-			$messages = CHAT::getnewmessages($conn, $msg->chatId, $msg->userId);
+			$messages = CHAT::getnewmessages($conn, $msg['chatId'], $msg['userId']);
 			foreach ($messages as $nmsg) {
 				$response = mask(json_encode(array('opcode' => OPCODE::NEWMSG, 'chatId' => $nmsg['chat_id'], 'userId' => $nmsg['user_id'], 'messageId' => $nmsg['id'], 'message' => $nmsg['message'], 'timestamp' => $nmsg['timestamp'])));
 				send_message($response, $socket);
 			}
 		break;
 		case OPCODE::NEWMSG:
-			$mId = CHAT::addchatmessage($conn, $msg->chatId, $msg->userId, $msg->message);
-			CHAT::updatelastseen($conn, $msg->chatId, $msg->userId, $mId);
-			$response = mask(json_encode(array('opcode' => OPCODE::LASTSEEN, 'chatId' => $msg->chatId, 'userId' => $msg->userId, 'messageId' => $mId)));
-			send_message_to_user($response, $msg->userId);
+			$mId = CHAT::addchatmessage($conn, $msg['chatId'], $msg['userId'], $msg['message']);
+			CHAT::updatelastseen($conn, $msg['chatId'], $msg['userId'], $mId);
+			$response = mask(json_encode(array('opcode' => OPCODE::LASTSEEN, 'chatId' => $msg['chatId'], 'userId' => $msg['userId'], 'messageId' => $mId)));
+			send_message_to_user($response, $msg['userId']);
 			//update broadcast NEWMSG to room.
-			$response = mask(json_encode(array('opcode' => OPCODE::NEWMSG, 'chatId' => $msg->chatId, 'userId' => $msg->userId, 'messageId' => $mId, 'message' => $msg->message, 'timestamp' => time())));
-			send_message_to_room($response, $msg->chatId);
-			echo 'USER:'.$msg->userId.' SEND MESSAGE ' . $msg->message.  ' TO ROOM '. $msg->chatId. "\n";
+			$response = mask(json_encode(array('opcode' => OPCODE::NEWMSG, 'chatId' => $msg['chatId'], 'userId' => $msg['userId'], 'messageId' => $mId, 'message' => $msg['message'], 'timestamp' => time())));
+			send_message_to_room($response, $msg['chatId']);
+			echo 'USER:'.$msg['userId'].' SEND MESSAGE ' . $msg['message'].  ' TO ROOM '. $msg['chatId']. "\n";
 		break;
 		case OPCODE::LASTSEEN:
-			CHAT::updatelastseen($conn, $msg->chatId, $msg->userId, $msg->messageId);
-			$response = mask(json_encode(array('opcode' => OPCODE::LASTSEEN, 'chatId' => $msg->chatId, 'userId' => $msg->userId, 'messageId' => $msg->messageId)));
-			send_message_to_user($response, $msg->userId);
-			echo 'USER:'.$msg->userId.' SET LAST SEEN ' . $msg->messageId.  ' TO ROOM '. $msg->chatId. "\n";
+			CHAT::updatelastseen($conn, $msg['chatId'], $msg['userId'], $msg['messageId']);
+			$response = mask(json_encode(array('opcode' => OPCODE::LASTSEEN, 'chatId' => $msg['chatId'], 'userId' => $msg['userId'], 'messageId' => $msg['messageId'])));
+			send_message_to_user($response, $msg['userId']);
+			echo 'USER:'.$msg['userId'].' SET LAST SEEN ' . $msg['messageId'].  ' TO ROOM '. $msg['chatId']. "\n";
 		break;
 		case OPCODE::HIST:
-			$histKey = $msg->chatId.'#'.$msg->userId;
-			$messages = CHAT::gethistmessages($conn, $msg->chatId, $msg->userId, $histIndexes[$histKey][$socket], $msg->count);
+			$histKey = $msg['chatId'].'#'.$msg['userId'];
+			$messages = CHAT::gethistmessages($conn, $msg['chatId'], $msg['userId'], $histIndexes[$histKey][$socket], $msg['count']);
 			$lastMsgId = 0;
 			foreach ($messages as $nmsg) {
 				$response = mask(json_encode(array('opcode' => OPCODE::OLDMSG, 'chatId' => $nmsg['chat_id'], 'userId' => $nmsg['user_id'], 'messageId' => $nmsg['id'], 'message' => $nmsg['message'], 'timestamp' => $nmsg['timestamp'])));
@@ -138,9 +141,10 @@ while (true) {
 	//loop through all connected sockets
 	foreach ($changed as $changed_socket) {
 		//check for any incomming data
-		while (socket_recv($changed_socket, $buf, 1024, 0) >= 1) {
+		while (socket_recv($changed_socket, $buf, 2048, 0) >= 1) {
 			$received_text = unmask($buf); //unmask data
-			$msg = json_decode($received_text); //json decode
+
+			$msg = json_decode($received_text, true); //json decode
 
 			handle_msg($msg, $changed_socket);
 			break 2; //exist this loop
