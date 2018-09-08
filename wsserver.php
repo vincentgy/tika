@@ -75,7 +75,7 @@ function handle_msg($msg, $socket) {
 			}
 			$histIndexes[$histKey][$socket] = 0;
 			echo 'USER:'.$msg['userId'].' JOIN ROOM '. $msg['chatId']. "\n";
-			$rooms[$msg['chatId'][] = $socket;
+			$rooms[$msg['chatId']][] = $socket;
 			foreach ($chat_users as $userId) {
 				$response = mask(json_encode(array('opcode' => OPCODE::JOIN, 'chatId' => $msg['chatId'], 'userId' => $userId)));
 				send_message($response, $socket);
