@@ -157,6 +157,7 @@ function cmd($msg) {
         $buf .= pack64le($msg['messageId']);
     break;
     case OPCODE::NEWMSG:
+    case OPCODE::OLDMSG:
         $buf .= pack32le($msg['chatId']);
         $buf .= pack32le($msg['userId']);
         $buf .= pack16le(strlen($msg['message']));
