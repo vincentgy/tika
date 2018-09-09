@@ -36,8 +36,70 @@ class OPCODE {
 	const LASTSEEN = 8;
 }
 
+function pack32le ($x) {
+    $r = '';
+
+    for ($i = 4; $i--;) {
+        $r .= chr($x & 255);
+        $x >>= 8;
+    }
+
+    return $r;
+};
+
+function unpack32le($x) {
+    $r = 0;
+
+    for ($i = 4; $i--;) {
+        $r = (($r << 8) >> 0) + ord($x[$i]);
+    }
+
+    return $r;
+};
+
+function pack16le($x) {
+    $r = '';
+
+    for ($i = 2; $i--;) {
+        $r .= chr($x & 255);
+        $x >>= 8;
+    }
+
+    return $r;
+};
+
+function unpack16le($x) {
+    $r = 0;
+
+    for ($i = 2; $i--;) {
+        $r = (($r << 8) >> 0) + ord($x[$i]);
+    }
+
+    return $r;
+};
+
 function disconnect($socket) {
 
+}
+
+function parse_cmd($cmdq) {
+	$r = array();
+	$opcode = ord($cmdq[0]);
+	$r['opcode'] = $opcode;
+	switch ($opcode) {
+		case OPCODE::CLIENTID:
+			$len = unpack16le(substr($cmdq, 1, 2));
+			$token = substr($cmdq, 3, len);
+			$r['token'] = $opcode;
+		break;
+		case OPCODE::JOIN:
+			$chatId = unpack32le(substr($cmdq, 1, 4));
+			$userId = unpack32le(substr($cmdq, 5, 4));
+			$r['chatId'] = $chatId;
+			$r['userId'] = $userId;
+		break;
+	}
+	return $r;
 }
 
 //handle system messages.
@@ -151,8 +213,8 @@ while (true) {
 			else {
 				$received_text = unmask($buf); //unmask data
 
-				$msg = json_decode($received_text, true); //json decode
-
+				$msg = parse_cmd($received_text); //json decode
+				var_dump($msg);
 				handle_msg($msg, $changed_socket);
 			}
 			break 2; //exist this loop
