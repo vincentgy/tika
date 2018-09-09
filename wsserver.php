@@ -90,7 +90,7 @@ function parse_cmd($cmdq) {
 		case OPCODE::CLIENTID:
 			$len = unpack16le(substr($cmdq, 1, 2));
 			$token = substr($cmdq, 3, $len);
-			$r['token'] = $opcode;
+			$r['token'] = $token;
 		break;
 		case OPCODE::JOIN:
 			$chatId = unpack32le(substr($cmdq, 1, 4));
