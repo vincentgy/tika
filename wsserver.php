@@ -106,6 +106,37 @@ function disconnect($socket) {
 	echo $socket . 'disconnected'. "\n";
 }
 
+function cmd($msg) {
+    $buf = chr($msg['opcode']);
+    switch ($msg['opcode']) {
+    case OPCODE::CHATLIST:
+        $buf .= pack16le(count($msg['chatList']));
+        for($i = 0; $i < count($msg['chatList']); $i++) {
+            $buf .= pack32le($msg['chatList'][$i]);
+        }
+    break;
+    case OPCODE::NEWROOM:
+        $buf .= pack32le($msg['chatId']);
+    break;
+    case OPCODE::JOIN:
+        $buf .= pack32le($msg['chatId']);
+        $buf .= pack32le($msg['userId']);
+    break;
+    case LASTSEEN:
+        $buf .= pack32le($msg['chatId']);
+        $buf .= pack32le($msg['userId']);
+        $buf .= pack64le($msg['messageId']);
+    break;
+    case NEWMSG:
+        $buf .= pack32le($msg['chatId']);
+        $buf .= pack32le($msg['userId']);
+        $buf .= pack16le(strlen($msg['message']));
+        $buf .= $msg['message'];
+    break;
+    }
+    return $buf;
+}
+
 function parse_cmd($cmdq) {
 	$r = array();
 	$opcode = ord($cmdq[0]);
@@ -140,6 +171,7 @@ function parse_cmd($cmdq) {
 			$r['count'] = $count;
 		break;
 		case OPCODE::NEWMSG:
+		case OPCODE::OLDMSG:
 			$chatId = unpack32le(substr($cmdq, 1, 4));
 			$userId = unpack32le(substr($cmdq, 5, 4));
 			$len = unpack16le(substr($cmdq, 9, 2));
@@ -175,12 +207,14 @@ function handle_msg($msg, $socket) {
 			echo 'USER:'.$userId." FETCH CHAT LIST\n";
 			$users[$userId][] = $socket;
 			$chats = CHAT::getchatlist($conn, $userId);
-			$response = mask(json_encode(array('opcode' => OPCODE::CHATLIST, 'chatList' => $chats)));
+			$cmd_str = cmd(array('opcode' => OPCODE::CHATLIST, 'chatList' => $chats));
+			$response = mask($cmd_str);
 			send_message($response, $socket);
 		break;
 		case OPCODE::NEWROOM:
 			$chatId = CHAT::create($conn, $msg['users']);
-			$response = mask(json_encode(array('opcode' => OPCODE::NEWROOM, 'chatId' => $chatId)));
+			$cmd_str = cmd(array('opcode' => OPCODE::NEWROOM, 'chatId' => $chatId));
+			$response = mask($cmd_str);
 			foreach ($msg['users'] as $userId) {
 				send_message_to_user($response, $userId);
 			}
@@ -200,30 +234,36 @@ function handle_msg($msg, $socket) {
 			echo 'USER:'.$msg['userId'].' JOIN ROOM '. $msg['chatId']. "\n";
 			$rooms[$msg['chatId']][] = $socket;
 			foreach ($chat_users as $userId) {
-				$response = mask(json_encode(array('opcode' => OPCODE::JOIN, 'chatId' => $msg['chatId'], 'userId' => $userId)));
+				$cmd_str = cmd(array('opcode' => OPCODE::JOIN, 'chatId' => $msg['chatId'], 'userId' => $userId));
+				$response = mask($cmd_str);
 				send_message($response, $socket);
 			}
-			$response = mask(json_encode(array('opcode' => OPCODE::JOIN, 'chatId' => $msg['chatId'], 'userId' => 0)));
+			$cmd_str = cmd(array('opcode' => OPCODE::JOIN, 'chatId' => $msg['chatId'], 'userId' => 0));
+			$response = mask($cmd_str);
 			send_message($response, $socket);
 			$messages = CHAT::getnewmessages($conn, $msg['chatId'], $msg['userId']);
 			foreach ($messages as $nmsg) {
-				$response = mask(json_encode(array('opcode' => OPCODE::NEWMSG, 'chatId' => $nmsg['chat_id'], 'userId' => $nmsg['user_id'], 'messageId' => $nmsg['id'], 'message' => $nmsg['message'], 'timestamp' => $nmsg['timestamp'])));
+				$cmd_str = cmd(array('opcode' => OPCODE::NEWMSG, 'chatId' => $nmsg['chat_id'], 'userId' => $nmsg['user_id'], 'messageId' => $nmsg['id'], 'message' => $nmsg['message'], 'timestamp' => $nmsg['timestamp']));
+				$response = mask($cmd_str);
 				send_message($response, $socket);
 			}
 		break;
 		case OPCODE::NEWMSG:
 			$mId = CHAT::addchatmessage($conn, $msg['chatId'], $msg['userId'], $msg['message']);
 			CHAT::updatelastseen($conn, $msg['chatId'], $msg['userId'], $mId);
-			$response = mask(json_encode(array('opcode' => OPCODE::LASTSEEN, 'chatId' => $msg['chatId'], 'userId' => $msg['userId'], 'messageId' => $mId)));
+			$cmd_str = cmd(array('opcode' => OPCODE::LASTSEEN, 'chatId' => $msg['chatId'], 'userId' => $msg['userId'], 'messageId' => $mId));
+			$response = mask($cmd_str);
 			send_message_to_user($response, $msg['userId']);
 			//update broadcast NEWMSG to room.
-			$response = mask(json_encode(array('opcode' => OPCODE::NEWMSG, 'chatId' => $msg['chatId'], 'userId' => $msg['userId'], 'messageId' => $mId, 'message' => $msg['message'], 'timestamp' => time())));
+			$cmd_str = cmd(array('opcode' => OPCODE::NEWMSG, 'chatId' => $msg['chatId'], 'userId' => $msg['userId'], 'messageId' => $mId, 'message' => $msg['message'], 'timestamp' => time()));
+			$response = mask($cmd_str);
 			send_message_to_room($response, $msg['chatId']);
 			echo 'USER:'.$msg['userId'].' SEND MESSAGE ' . $msg['message'].  ' TO ROOM '. $msg['chatId']. "\n";
 		break;
 		case OPCODE::LASTSEEN:
 			CHAT::updatelastseen($conn, $msg['chatId'], $msg['userId'], $msg['messageId']);
-			$response = mask(json_encode(array('opcode' => OPCODE::LASTSEEN, 'chatId' => $msg['chatId'], 'userId' => $msg['userId'], 'messageId' => $msg['messageId'])));
+			$cmd_str = cmd(array('opcode' => OPCODE::LASTSEEN, 'chatId' => $msg['chatId'], 'userId' => $msg['userId'], 'messageId' => $msg['messageId']));
+			$response = mask($cmd_str);
 			send_message_to_user($response, $msg['userId']);
 			echo 'USER:'.$msg['userId'].' SET LAST SEEN ' . $msg['messageId'].  ' TO ROOM '. $msg['chatId']. "\n";
 		break;
@@ -233,7 +273,8 @@ function handle_msg($msg, $socket) {
 			$messages = CHAT::gethistmessages($conn, $msg['chatId'], $msg['userId'], $histIndexes[$histKey][$sid], $msg['count']);
 			$lastMsgId = 0;
 			foreach ($messages as $nmsg) {
-				$response = mask(json_encode(array('opcode' => OPCODE::OLDMSG, 'chatId' => $nmsg['chat_id'], 'userId' => $nmsg['user_id'], 'messageId' => $nmsg['id'], 'message' => $nmsg['message'], 'timestamp' => $nmsg['timestamp'])));
+				$cmd_str = cmd(array('opcode' => OPCODE::OLDMSG, 'chatId' => $nmsg['chat_id'], 'userId' => $nmsg['user_id'], 'messageId' => $nmsg['id'], 'message' => $nmsg['message'], 'timestamp' => $nmsg['timestamp']));
+				$response = mask($cmd_str);
 				send_message($response, $socket);
 				$lastMsgId = $nmsg['id'];
 			}
