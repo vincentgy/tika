@@ -36,6 +36,27 @@ class OPCODE {
 	const LASTSEEN = 8;
 }
 
+function pack64le ($x) {
+    $r = '';
+
+    for ($i = 8; $i--;) {
+        $r .= chr($x & 255);
+        $x >>= 8;
+    }
+
+    return $r;
+};
+
+function unpack64le($x) {
+    $r = 0;
+
+    for ($i = 8; $i--;) {
+        $r = (($r << 8) >> 0) + ord($x[$i]);
+    }
+
+    return $r;
+};
+
 function pack32le ($x) {
     $r = '';
 
@@ -92,11 +113,36 @@ function parse_cmd($cmdq) {
 			$token = substr($cmdq, 3, $len);
 			$r['token'] = $token;
 		break;
+		case OPCODE::NEWROOM:
+			$count = unpack16le(substr($cmdq, 1, 2));
+			$users = array();
+			for($i = 0; $i < $count; $i++) {
+				$uId = unpack32le(substr($cmdq, 3 + ($i * 4), 4));
+				$users[] = $uId;
+			}
+			$r['users'] = $users;
+		break;
 		case OPCODE::JOIN:
 			$chatId = unpack32le(substr($cmdq, 1, 4));
 			$userId = unpack32le(substr($cmdq, 5, 4));
 			$r['chatId'] = $chatId;
 			$r['userId'] = $userId;
+		break;
+		case OPCODE::HIST:
+			$chatId = unpack32le(substr($cmdq, 1, 4));
+			$userId = unpack32le(substr($cmdq, 5, 4));
+			$count = unpack32le(substr($cmdq, 9, 2));
+			$r['chatId'] = $chatId;
+			$r['userId'] = $userId;
+			$r['count'] = $count;
+		break;
+		case OPCODE::LASTSEEN:
+			$chatId = unpack32le(substr($cmdq, 1, 4));
+			$userId = unpack32le(substr($cmdq, 5, 4));
+			$messageId = unpack64le(substr($cmdq, 9, 8));
+			$r['chatId'] = $chatId;
+			$r['userId'] = $userId;
+			$r['messageId'] = $messageId;
 		break;
 	}
 	return $r;
