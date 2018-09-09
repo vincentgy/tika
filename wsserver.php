@@ -100,7 +100,9 @@ function unpack16le($x) {
 };
 
 function disconnect($socket) {
-
+	unset($clients[$socket]);
+	//send_message_to_socks($response, $clients);
+	echo $socket . 'disconnected'. "\n";
 }
 
 function parse_cmd($cmdq) {
@@ -269,7 +271,7 @@ while (true) {
 
 		}
 
-		$buf = @socket_read($changed_socket, 1024, PHP_NORMAL_READ);
+		/*$buf = @socket_read($changed_socket, 1024, PHP_NORMAL_READ);
 		if ($buf === false) { // check disconnected client
 			// remove client for $clients array
 			$found_socket = array_search($changed_socket, $clients);
@@ -279,7 +281,7 @@ while (true) {
 			$response = mask(json_encode(array('type' => 'system', 'message' => 5 . ' disconnected')));
 			//send_message_to_socks($response, $clients);
 			echo $found_socket . 'disconnected'. "\n";
-		}
+		}*/
 	}
 }
 // close the listening socket
