@@ -100,6 +100,7 @@ function unpack16le($x) {
 };
 
 function disconnect($socket) {
+	global $clients;
 	unset($clients[$socket]);
 	//send_message_to_socks($response, $clients);
 	echo $socket . 'disconnected'. "\n";
@@ -137,6 +138,14 @@ function parse_cmd($cmdq) {
 			$r['chatId'] = $chatId;
 			$r['userId'] = $userId;
 			$r['count'] = $count;
+		break;
+		case OPCODE::NEWMSG:
+			$chatId = unpack32le(substr($cmdq, 1, 4));
+			$userId = unpack32le(substr($cmdq, 5, 4));
+			$len = unpack16le(substr($cmdq, 9, 2));
+			$r['chatId'] = $chatId;
+			$r['userId'] = $userId;
+			$r['message'] = substr($cmdq, 11, $len);
 		break;
 		case OPCODE::LASTSEEN:
 			$chatId = unpack32le(substr($cmdq, 1, 4));
