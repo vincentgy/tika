@@ -238,9 +238,35 @@ function handle_msg($msg, $socket) {
 			echo 'USER:'.$userId." FETCH CHAT LIST\n";
 			$users[$userId][] = $socket;
 			$chats = CHAT::getchatlist($conn, $userId);
-			$cmd_str = cmd(array('opcode' => OPCODE::CHATLIST, 'chatList' => $chats));
-			$response = mask($cmd_str);
-			send_message($response, $socket);
+			foreach ($chats as $cId) {
+				$chat_users = CHAT::getparticipants($conn, $cId);
+				if (!array_key_exists($msg['chatId'], $rooms)) {
+					$rooms[$msg['chatId']] = array();
+				}
+				$histKey = $msg['chatId'].'#'.$msg['userId'];
+
+				if (!array_key_exists($histKey, $histIndexes)) {
+					$histIndexes[$histKey] = array();
+				}
+				$sid = (int) $socket;
+				$histIndexes[$histKey][$sid] = 0;
+				echo 'USER:'.$msg['userId'].' JOIN ROOM '. $msg['chatId']. "\n";
+				$rooms[$msg['chatId']][] = $socket;
+				foreach ($chat_users as $userId) {
+					$cmd_str = cmd(array('opcode' => OPCODE::JOIN, 'chatId' => $msg['chatId'], 'userId' => $userId));
+					$response = mask($cmd_str);
+					send_message($response, $socket);
+				}
+				$cmd_str = cmd(array('opcode' => OPCODE::JOIN, 'chatId' => $msg['chatId'], 'userId' => 0));
+				$response = mask($cmd_str);
+				send_message($response, $socket);
+				$messages = CHAT::getnewmessages($conn, $msg['chatId'], $msg['userId']);
+				foreach ($messages as $nmsg) {
+					$cmd_str = cmd(array('opcode' => OPCODE::NEWMSG, 'chatId' => $nmsg['chat_id'], 'userId' => $nmsg['user_id'], 'messageId' => $nmsg['id'], 'message' => $nmsg['message'], 'timestamp' => $nmsg['timestamp']));
+					$response = mask($cmd_str);
+					send_message($response, $socket);
+				}
+			}
 		break;
 		case OPCODE::NEWROOM:
 			$chatId = CHAT::create($conn, $msg['users']);
