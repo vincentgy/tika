@@ -184,7 +184,8 @@ function handle_msg($msg, $socket) {
 			if (!array_key_exists($histKey, $histIndexes)) {
 				$histIndexes[$histKey] = array();
 			}
-			$histIndexes[$histKey][$socket] = 0;
+			$sid = (int) $socket;
+			$histIndexes[$histKey][$sid] = 0;
 			echo 'USER:'.$msg['userId'].' JOIN ROOM '. $msg['chatId']. "\n";
 			$rooms[$msg['chatId']][] = $socket;
 			foreach ($chat_users as $userId) {
@@ -217,14 +218,15 @@ function handle_msg($msg, $socket) {
 		break;
 		case OPCODE::HIST:
 			$histKey = $msg['chatId'].'#'.$msg['userId'];
-			$messages = CHAT::gethistmessages($conn, $msg['chatId'], $msg['userId'], $histIndexes[$histKey][$socket], $msg['count']);
+			$sid = (int) $socket;
+			$messages = CHAT::gethistmessages($conn, $msg['chatId'], $msg['userId'], $histIndexes[$histKey][$sid], $msg['count']);
 			$lastMsgId = 0;
 			foreach ($messages as $nmsg) {
 				$response = mask(json_encode(array('opcode' => OPCODE::OLDMSG, 'chatId' => $nmsg['chat_id'], 'userId' => $nmsg['user_id'], 'messageId' => $nmsg['id'], 'message' => $nmsg['message'], 'timestamp' => $nmsg['timestamp'])));
 				send_message($response, $socket);
 				$lastMsgId = $nmsg['id'];
 			}
-			$histIndexes[$histKey][$socket] = $lastMsgId;
+			$histIndexes[$histKey][$sid] = $lastMsgId;
 		break;
 	}
 }
