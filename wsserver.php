@@ -131,7 +131,7 @@ function parse_cmd($cmdq) {
 		case OPCODE::HIST:
 			$chatId = unpack32le(substr($cmdq, 1, 4));
 			$userId = unpack32le(substr($cmdq, 5, 4));
-			$count = unpack32le(substr($cmdq, 9, 2));
+			$count = unpack16le(substr($cmdq, 9, 2));
 			$r['chatId'] = $chatId;
 			$r['userId'] = $userId;
 			$r['count'] = $count;
