@@ -151,12 +151,12 @@ function cmd($msg) {
         $buf .= pack32le($msg['chatId']);
         $buf .= pack32le($msg['userId']);
     break;
-    case LASTSEEN:
+    case OPCODE::LASTSEEN:
         $buf .= pack32le($msg['chatId']);
         $buf .= pack32le($msg['userId']);
         $buf .= pack64le($msg['messageId']);
     break;
-    case NEWMSG:
+    case OPCODE::NEWMSG:
         $buf .= pack32le($msg['chatId']);
         $buf .= pack32le($msg['userId']);
         $buf .= pack16le(strlen($msg['message']));
