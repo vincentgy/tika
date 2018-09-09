@@ -134,6 +134,7 @@ function cmd($msg) {
         $buf .= $msg['message'];
     break;
     }
+    echo bin2hex($buf);
     return $buf;
 }
 
@@ -194,7 +195,7 @@ function parse_cmd($cmdq) {
 //handle system messages.
 function handle_msg($msg, $socket) {
 	global $conn, $users, $rooms, $histIndexes;
-	var_dump($msg);
+
 	if (!isset($msg['opcode'])) {
 		return;
 	}
