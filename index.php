@@ -168,6 +168,21 @@ if(isset($req['a'])) {
                 }
             }
         break;
+        case 'gpl':// search job
+            $u = $user_id;
+            if (isset($req['user_id']) !== false) {
+                $u = $req['user_id'];
+            }
+
+            $r = JOB::searchjobsbyuser($link, $u);
+            if ($r !== false) {
+                $response['ret'] = 0;
+                $response['data'] = $r;
+            }
+            else {
+                $response['ret'] = 1;
+            }
+        break;
         case 'ap':// apply position
             if (isset($req['p']) === false ||
                 isset($req['u']) === false
