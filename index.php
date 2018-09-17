@@ -132,7 +132,6 @@ if(isset($req['a'])) {
         case 'pj':// post job
             if (isset($req['title']) === false ||
                 isset($req['company']) === false ||
-                isset($req['user_id']) === false  ||
                 isset($req['categories']) === false  ||
                 isset($req['type']) === false  ||
                 isset($req['pay_type']) === false ||
@@ -144,7 +143,7 @@ if(isset($req['a'])) {
             }
             else {
 
-                $r = JOB::addjob($link, $req['title'], $req['company'], $req['description'], $req['user_id'], $req['type'], $req['pay_type'], $req['minimum_pay'], $req['maximum_pay'], $req['number'], $req['region_id'], $req['district_id'], $req['location'], $req['categories']);
+                $r = JOB::addjob($link, $req['title'], $req['company'], $req['description'], $user_id, $req['type'], $req['pay_type'], $req['minimum_pay'], $req['maximum_pay'], $req['number'], $req['region_id'], $req['district_id'], $req['location'], $req['categories']);
                 if ($r !== false) {
                     $response['ret'] = 0;
                 }
