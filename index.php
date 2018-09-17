@@ -202,11 +202,11 @@ if(isset($req['a'])) {
             }
         break;
         case 'up':// update profile
-            if (isset($req['user_id']) === false) {
+            if ($user_id === false) {
                 $response['ret'] = -2;
             }
 
-            $r = PROFILE::update($link, $req['user_id'], $req['description'], $req['phone'], $req['skills'],  $req['qualifications'], $req['experiences']);
+            $r = PROFILE::update($link, $user_id, $req['description'], $req['phone'], $req['skills'],  $req['qualifications'], $req['experiences']);
             if ($r !== false) {
                 $response['ret'] = 0;
             }
