@@ -75,11 +75,7 @@ class PROFILE
             }
         }
         error_log(print_r($rows, true));
-        $region = false;
-        if (count($rows) === 1) {
-            $region = $rows[0]['name'];
-        }
-        return $region;
+        return $rows;
     }
 
     static function addqualification($link, $userid, $degree, $school, $major, $start, $end)
@@ -147,11 +143,7 @@ class PROFILE
             }
         }
         error_log(print_r($rows, true));
-        $region = false;
-        if (count($rows) === 1) {
-            $region = $rows[0]['name'];
-        }
-        return $region;
+        return $rows;
     }
 
     static function addexperience($link, $userid, $place, $task, $start, $end)
