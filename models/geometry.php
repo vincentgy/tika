@@ -2,7 +2,7 @@
 include_once("location.php");
  
  class Geometry {
-    static $google_api_key = 'AIzaSyCxmWtnp8KG0dcnKIQzKoxvqdU3JjbC4GA';
+    static $google_api_key = 'AIzaSyCKjBvFmg64Vef_NiIGLrK7vNobmel475I';
     static function covertToLocation($address) {
         // Get lat and long by address         
         $prepAddr = str_replace(' ','+',$address);
