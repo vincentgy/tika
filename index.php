@@ -227,6 +227,23 @@ if(isset($req['a'])) {
                 $response['ret'] = 1;
             }
         break;
+        case 'aq':// update qualification
+            if (isset($req['degree']) === false ||
+                isset($req['school']) === false ||
+                isset($req['major']) === false ||
+                isset($req['start']) === false ||
+                isset($req['end']) === false) {
+                $response['ret'] = -2;
+            }
+
+            $r = PROFILE::addqualification($link, $user_id, $req['degree'], $req['school'], $req['major'], $req['start'], $req['end']);
+            if ($r !== false) {
+                $response['ret'] = 0;
+            }
+            else {
+                $response['ret'] = 1;
+            }
+        break;
         case 'uq':// update qualification
             if (isset($req['id']) === false ||
                 isset($req['degree']) === false ||
@@ -238,6 +255,22 @@ if(isset($req['a'])) {
             }
 
             $r = PROFILE::updatequalification($link, $req['id'], $req['degree'], $req['school'], $req['major'], $req['start'], $req['end']);
+            if ($r !== false) {
+                $response['ret'] = 0;
+            }
+            else {
+                $response['ret'] = 1;
+            }
+        break;
+        case 'ae':// update experience
+            if (isset($req['place']) === false ||
+                isset($req['task']) === false ||
+                isset($req['start']) === false ||
+                isset($req['end']) === false) {
+                $response['ret'] = -2;
+            }
+
+            $r = PROFILE::addexperience($link, $user_id, $req['place'], $req['task'], $req['start'], $req['end']);
             if ($r !== false) {
                 $response['ret'] = 0;
             }
