@@ -6,7 +6,8 @@ include_once("location.php");
     static function covertToLocation($address) {
         // Get lat and long by address         
         $prepAddr = str_replace(' ','+',$address);
-        $geocode=file_get_contents('https://maps.google.com/maps/api/geocode/json?address='.$prepAddr.'&sensor=false');
+        $geocode=file_get_contents('https://maps.google.com/maps/api/geocode/json?address='.$prepAddr.'&sensor=false&key='.Geometry::$google_api_key);
+        error_log(print_r($geocode, true));
         $output= json_decode($geocode);
 
         $latitude = $output->results[0]->geometry->location->lat;
