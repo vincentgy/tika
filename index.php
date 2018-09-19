@@ -264,13 +264,14 @@ if(isset($req['a'])) {
         break;
         case 'ae':// update experience
             if (isset($req['place']) === false ||
+                isset($req['title']) === false ||
                 isset($req['task']) === false ||
                 isset($req['start']) === false ||
                 isset($req['end']) === false) {
                 $response['ret'] = -2;
             }
 
-            $r = PROFILE::addexperience($link, $user_id, $req['place'], $req['task'], $req['start'], $req['end']);
+            $r = PROFILE::addexperience($link, $user_id, $req['place'], $req['title'], $req['task'], $req['start'], $req['end']);
             if ($r !== false) {
                 $response['ret'] = 0;
             }
@@ -281,13 +282,14 @@ if(isset($req['a'])) {
         case 'ue':// update experience
             if (isset($req['id']) === false ||
                 isset($req['place']) === false ||
+                isset($req['title']) === false ||
                 isset($req['task']) === false ||
                 isset($req['start']) === false ||
                 isset($req['end']) === false) {
                 $response['ret'] = -2;
             }
 
-            $r = PROFILE::updateexperience($link, $req['id'], $req['place'], $req['task'], $req['start'], $req['end']);
+            $r = PROFILE::updateexperience($link, $req['id'], $req['place'], $req['title'], $req['task'], $req['start'], $req['end']);
             if ($r !== false) {
                 $response['ret'] = 0;
             }

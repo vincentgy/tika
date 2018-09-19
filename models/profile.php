@@ -146,13 +146,13 @@ class PROFILE
         return $rows;
     }
 
-    static function addexperience($link, $userid, $place, $task, $start, $end)
+    static function addexperience($link, $userid, $place, $title, $task, $start, $end)
     {
         $r = false;
-        $sql = "INSERT INTO work_experience (user_id, place, task, start, end) VALUES (?,?,?,?,?)";
+        $sql = "INSERT INTO work_experience (user_id, place, title, task, start, end) VALUES (?,?,?,?,?,?)";
 
         if($stmt = mysqli_prepare($link, $sql)) {
-            mysqli_stmt_bind_param($stmt, "issss", $userid, $place, $task, $start, $end);
+            mysqli_stmt_bind_param($stmt, "isssss", $userid, $place, $title, $task, $start, $end);
             if(mysqli_stmt_execute($stmt)){
                 $r = true;
             }
@@ -169,13 +169,13 @@ class PROFILE
         return $r;
     }
 
-    static function updateexperience($link, $id, $place, $task, $start, $end)
+    static function updateexperience($link, $id, $place, $title, $task, $start, $end)
     {
         $r = false;
-        $sql = "UPDATE work_experience SET place=?, task=?, start=?, end=? WHERE id=?";
+        $sql = "UPDATE work_experience SET place=?, title=?, task=?, start=?, end=? WHERE id=?";
 
         if($stmt = mysqli_prepare($link, $sql)) {
-            mysqli_stmt_bind_param($stmt, "ssssi", $place, $task, $start, $end, $id);
+            mysqli_stmt_bind_param($stmt, "sssssi", $place, $title, $task, $start, $end, $id);
             if(mysqli_stmt_execute($stmt)){
                 $r = true;
             }
