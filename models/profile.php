@@ -20,7 +20,7 @@ class PROFILE
                 PROFILE::addqualification($link, $userid, $item['degree'], $item['school'], $item['major'], $item['start'], $item['end']);
             }
             foreach($experiences as $item) {
-                PROFILE::addexperience($link, $userid, $item['place'], $item['task'], $item['start'], $item['end']);
+                PROFILE::addexperience($link, $userid, $item['place'],  $item['title'], $item['task'], $item['start'], $item['end']);
             }       
         }
         else {
