@@ -125,6 +125,29 @@ class PROFILE
         return $r;
     }
 
+    static function deletequalification($link, $id)
+    {
+        $r = false;
+        $sql = "DELETE FROM qualifications WHERE id = ?";
+
+        if($stmt = mysqli_prepare($link, $sql)) {
+            mysqli_stmt_bind_param($stmt, "i", $id);
+            if(mysqli_stmt_execute($stmt)){
+                $r = true;
+            }
+            else {
+                $r = false;
+            }
+            mysqli_stmt_close($stmt);
+        }
+        else {
+            echo("Error description: " . mysqli_error($link));
+            $r = false;
+        }
+
+        return $r;
+    }
+
     static function getexperiencesbyuser($link, $userid) {
         $sql = "SELECT * FROM work_experience WHERE user_id = ? ORDER BY start DESC";
         $rows = [];
@@ -176,6 +199,29 @@ class PROFILE
 
         if($stmt = mysqli_prepare($link, $sql)) {
             mysqli_stmt_bind_param($stmt, "sssssi", $place, $title, $task, $start, $end, $id);
+            if(mysqli_stmt_execute($stmt)){
+                $r = true;
+            }
+            else {
+                $r = false;
+            }
+            mysqli_stmt_close($stmt);
+        }
+        else {
+            echo("Error description: " . mysqli_error($link));
+            $r = false;
+        }
+
+        return $r;
+    }
+
+    static function deleteexperience($link, $id)
+    {
+        $r = false;
+        $sql = "DELETE FROM work_experience WHERE id=?";
+
+        if($stmt = mysqli_prepare($link, $sql)) {
+            mysqli_stmt_bind_param($stmt, "i", $id);
             if(mysqli_stmt_execute($stmt)){
                 $r = true;
             }

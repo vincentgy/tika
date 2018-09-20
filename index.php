@@ -227,7 +227,7 @@ if(isset($req['a'])) {
                 $response['ret'] = 1;
             }
         break;
-        case 'aq':// update qualification
+        case 'aq':// add qualification
             if (isset($req['degree']) === false ||
                 isset($req['school']) === false ||
                 isset($req['major']) === false ||
@@ -262,7 +262,20 @@ if(isset($req['a'])) {
                 $response['ret'] = 1;
             }
         break;
-        case 'ae':// update experience
+        case 'dq':// delete qualification
+            if (isset($req['id']) === false) {
+                $response['ret'] = -2;
+            }
+
+            $r = PROFILE::deletequalification($link, $req['id']);
+            if ($r !== false) {
+                $response['ret'] = 0;
+            }
+            else {
+                $response['ret'] = 1;
+            }
+        break;
+        case 'ae':// add experience
             if (isset($req['place']) === false ||
                 isset($req['title']) === false ||
                 isset($req['task']) === false ||
@@ -290,6 +303,19 @@ if(isset($req['a'])) {
             }
 
             $r = PROFILE::updateexperience($link, $req['id'], $req['place'], $req['title'], $req['task'], $req['start'], $req['end']);
+            if ($r !== false) {
+                $response['ret'] = 0;
+            }
+            else {
+                $response['ret'] = 1;
+            }
+        break;
+        case 'de':// update experience
+            if (isset($req['id']) === false) {
+                $response['ret'] = -2;
+            }
+
+            $r = PROFILE::deleteexperience($link, $req['id']);
             if ($r !== false) {
                 $response['ret'] = 0;
             }
