@@ -6,7 +6,7 @@ class PROFILE
     static function update($link, $userid, $description, $phone, $skills, $qualifications, $experiences) {
         $sql = "UPDATE users SET description=?, phone=?, skills=? WHERE id = ?";
         $r = false;
-        $skills = explode(",", $skills);
+        $skills = implode(",", $skills);
         if($stmt = mysqli_prepare($link, $sql)) {
             mysqli_stmt_bind_param($stmt, "sssi", $description, $phone, $skills, $userid);
             if(mysqli_stmt_execute($stmt)){
