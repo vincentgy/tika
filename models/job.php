@@ -1,5 +1,6 @@
 <?php
 include_once("geometry.php");
+include_once("user.php");
 
 class JOB
 {
@@ -230,6 +231,7 @@ class JOB
                 while ($row=mysqli_fetch_assoc($result)) {
                     $row['region'] = Address::getregionbyId($link, $row['region_id']);
                     $row['district'] = Address::getdistrictbyId($link, $row['district_id']);
+                    $row['poster'] = USER::getuserbyid($link, $row['user_id']);
 
                     if (isset($location['latitude']) && isset($location['longitude'])) {
                         $dist = Geometry::distance($row['latitude'], $row['longitude'], $location['latitude'], $location['longitude']);

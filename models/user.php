@@ -53,7 +53,7 @@ class USER
     }
 
     static function getuserbyid($link, $userid) {
-        $sql = "SELECT name, email, skills FROM users WHERE id = ?";
+        $sql = "SELECT name, email, description, skills, avatar, title, company FROM users WHERE id = ?";
         $r = false;
 
         if($stmt = mysqli_prepare($link, $sql)) {
