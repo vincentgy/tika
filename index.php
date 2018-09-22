@@ -4,6 +4,7 @@ include_once "./models/geometry.php";
 include_once "./models/job.php";
 include_once "./models/session.php";
 include_once "./models/profile.php";
+include_once "./models/watchlist.php";
 require_once __DIR__ ."/config.php";
 
 $response = array();
@@ -342,6 +343,40 @@ if(isset($req['a'])) {
             if ($address !== false) {
                 $response['ret'] = 0;
                 $response['data'] = $address;
+            }
+            else {
+                $response['ret'] = 1;
+            }
+        break;
+        case 'aw':// add watch
+            if (isset($req['position_id']) === false) {
+                $response['ret'] = -2;
+            }
+            $r = WATCHLIST::addwatch($link, $user_id, $req['position_id']);
+            if ($r !== false) {
+                $response['ret'] = 0;
+            }
+            else {
+                $response['ret'] = 1;
+            }
+        break;
+        case 'dw':// delete watch
+            if (isset($req['watch_id']) === false) {
+                $response['ret'] = -2;
+            }
+            $r = WATCHLIST::deletewatch($link, $req['watch_id']);
+            if ($r !== false) {
+                $response['ret'] = 0;
+            }
+            else {
+                $response['ret'] = 1;
+            }
+        break;
+        case 'gwl':// get watchlist
+            $r = WATCHLIST::getwatchlistbyuser($link, $user_id);
+            if ($r !== false) {
+                $response['ret'] = 0;
+                $response['data'] = $r;
             }
             else {
                 $response['ret'] = 1;
