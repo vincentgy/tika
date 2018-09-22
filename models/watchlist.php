@@ -112,7 +112,7 @@ class WATCHLIST
                 $result = mysqli_stmt_get_result($stmt);
 
                 while ($row=mysqli_fetch_assoc($result)) {
-                    $r = JOB::searchjobsbyid($link, $row['position_id']);
+                    $r = JOB::searchjobbyid($link, $row['position_id']);
                     $r['timestamp'] = $row['timestamp'];
                     $rows[] = $r;
                 }

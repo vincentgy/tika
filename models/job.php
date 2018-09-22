@@ -274,7 +274,7 @@ class JOB
     }
 
     // search jobs posted by a given user.
-    static function searchjobsbyid($link, $id) {
+    static function searchjobbyid($link, $id) {
         $sql = "SELECT * FROM positions WHERE id = ?";
         $rows = [];
 
@@ -285,6 +285,7 @@ class JOB
                 $result = mysqli_stmt_get_result($stmt);
 
                 while ($row=mysqli_fetch_assoc($result)) {
+                    $row['poster'] = USER::getuserbyid($link, $row['user_id']);
                     $row['categories'] = JOB::getcategoriesbyposition($link, $row['id']);
                     $rows[] = $row;
                 }
