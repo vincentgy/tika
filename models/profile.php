@@ -53,7 +53,7 @@ class PROFILE
                 mysqli_stmt_close($stmt);
             }
         }
-
+        error_log(print_r($r, true));
         return $r;
     }
 
@@ -74,7 +74,7 @@ class PROFILE
                 mysqli_free_result($result);
             }
         }
-        error_log(print_r($rows, true));
+
         return $rows;
     }
 
@@ -165,7 +165,7 @@ class PROFILE
                 mysqli_free_result($result);
             }
         }
-        error_log(print_r($rows, true));
+
         return $rows;
     }
 
