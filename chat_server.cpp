@@ -120,11 +120,12 @@ uint32_t unpack16le(const std::string& x) {
 
 void parse_cmd(const std::string& cmdq, command& r) {
     uint32_t opcode = (uint32_t)cmdq[0];
+    int len = 0;
     r.opcode = opcode;
     std::cout<< "opcode:"<<opcode<<std::endl;
     switch (opcode) {
         case OPCODE::CLIENTID:
-            int len = unpack16le(cmdq.substr(1, 2));
+            len = unpack16le(cmdq.substr(1, 2));
             std::string token = cmdq.substr(3, len);
             r.token = token;
         break;
@@ -132,7 +133,7 @@ void parse_cmd(const std::string& cmdq, command& r) {
         case OPCODE::OLDMSG:
             r.chatId = unpack32le(cmdq.substr(1, 4));
             r.userId = unpack32le(cmdq.substr(5, 4));
-            int len = unpack16le(cmdq.substr(9, 2));
+            len = unpack16le(cmdq.substr(9, 2));
             r.message = cmdq.substr(11, len);
         break;
     }
@@ -292,13 +293,12 @@ protected:
                 printf("id: %s, val: %s\n", 
                        (row[0] ? row[0] : "NULL"), 
                        (row[1] ? row[1] : "NULL"));
-                user_id = row[0];
-
+                user_id = atoi(row[0]);
             }
             /* free the result set */
             mysql_free_result(result);
             /* close the connection */
-            mysql_close(connection);
+            mysql_close(m_connect);
             printf("Done.\n");
             return user_id;
         }
