@@ -198,7 +198,7 @@ public:
                 lock_guard<mutex> guard(m_connection_lock);
                 m_connections.insert(a.hdl);
             } else if (a.type == UNSUBSCRIBE) {
-                std::cout<<"UNSUBSCRIBE"<<static_cast<long*>a.hdl<<std::endl;
+                std::cout<<"UNSUBSCRIBE"<<*static_cast<long*>(a.hdl)<<std::endl;
                 lock_guard<mutex> guard(m_connection_lock);
                 m_connections.erase(a.hdl);
             } else if (a.type == MESSAGE) {
@@ -211,7 +211,7 @@ public:
                 con_list::iterator it;
                 for (it = m_connections.begin(); it != m_connections.end(); ++it) {
                     std::cout<<"xcode"<<a.msg->get_opcode()<<a.msg->get_payload()<<std::endl;
-                    m_server.send(*it, a.msg->get_payload()<<endl;,  a.msg->get_opcode());
+                    m_server.send(*it, a.msg->get_payload(),  a.msg->get_opcode());
 
                 }
             } else {
