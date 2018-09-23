@@ -35,7 +35,7 @@ enum action_type {
     MESSAGE
 };
 
-enum opCode {
+enum OPCODE {
     CLIENTID = 1,
     CHATLIST = 2,
     NEWROOM = 3,
@@ -116,8 +116,8 @@ void parse_cmd(const std::string& cmdq, command& r) {
     r.opcode = opcode;
     std::cout<< "opcode:"<<opcode<<std::endl;
     switch (opcode) {
-        case opCode::NEWMSG:
-        case opCode::OLDMSG:
+        case OPCODE::NEWMSG:
+        case OPCODE::OLDMSG:
             r.chatId = unpack32le(cmdq.substr(1, 4));
             r.userId = unpack32le(cmdq.substr(5, 4));
             int len = unpack16le(cmdq.substr(9, 2));
@@ -198,14 +198,14 @@ public:
                 lock_guard<mutex> guard(m_connection_lock);
                 m_connections.insert(a.hdl);
             } else if (a.type == UNSUBSCRIBE) {
-                std::cout<<"UNSUBSCRIBE"<<a.hdl<<std::endl;
+                std::cout<<"UNSUBSCRIBE"<<(long)a.hdl<<std::endl;
                 lock_guard<mutex> guard(m_connection_lock);
                 m_connections.erase(a.hdl);
             } else if (a.type == MESSAGE) {
                 lock_guard<mutex> guard(m_connection_lock);
                 command cmd;
                 parse_cmd(a.msg->get_payload(), cmd);
-                if (cmd.opcode == opcode::NEWMSG) {
+                if (cmd.opcode == OPCODE::NEWMSG) {
                     std::cout<<"NEWMSG:"<<cmd.chatId<<','<<cmd.userId<<','<<cmd.message<<std::endl;
                 }
                 con_list::iterator it;
