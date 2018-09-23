@@ -4,6 +4,7 @@
 
 #include <iostream>
 #include <set>
+#include <stdint.h>
 
 /*#include <boost/thread.hpp>
 #include <boost/thread/mutex.hpp>
@@ -34,6 +35,29 @@ enum action_type {
     MESSAGE
 };
 
+enum opCode {
+    CLIENTID = 1,
+    CHATLIST = 2,
+    NEWROOM = 3,
+    JOIN   =4,
+    HIST   =5,
+    NEWMSG = 6,
+    OLDMSG = 7,
+    LASTSEEN = 8
+};
+
+struct command
+{
+    uint32_t opcode;
+    uint32_t chatId;
+    uint32_t userId;
+    uint64_t messageId;
+    uint32_t count;
+    std::string token;
+    std::string message;
+    std::std::vector<uint32_t> users;
+};
+
 struct action {
     action(action_type t, connection_hdl h) : type(t), hdl(h) {}
     action(action_type t, connection_hdl h, server::message_ptr m)
@@ -43,6 +67,34 @@ struct action {
     websocketpp::connection_hdl hdl;
     server::message_ptr msg;
 };
+
+
+std::string pack32le (uint32_t x) {
+    std::string r = '';
+
+    for (int i = 4; i--;) {
+        r += ((char)(x & 255));
+        x >>= 8;
+    }
+
+    return r;
+}
+
+uint32_t unpack32le(const std::string& x) {
+    uint32_t r = 0;
+
+    for (int i = 4; i--;) {
+        r = ((r << 8) >> 0) + (uint32_t)(x[i]);
+    }
+
+    return r;
+}
+
+void parse_cmd(const std::string& cmdq, command& r) {
+    uint32_t opcode = (uint32_t)cmdq[0];
+    r.opcode = opcode;
+    std::cout<< "opcode:"<<opcode<<std::endl;
+}
 
 class broadcast_server {
 public:
@@ -120,10 +172,12 @@ public:
                 m_connections.erase(a.hdl);
             } else if (a.type == MESSAGE) {
                 lock_guard<mutex> guard(m_connection_lock);
-
+                command cmd;
+                parse_cmd(a.msg, cmd);
                 con_list::iterator it;
                 for (it = m_connections.begin(); it != m_connections.end(); ++it) {
                     m_server.send(*it,a.msg);
+
                 }
             } else {
                 // undefined.
