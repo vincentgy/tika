@@ -70,7 +70,7 @@ struct action {
 
 
 std::string pack32le (uint32_t x) {
-    std::string r = '';
+    std::string r;
 
     for (int i = 4; i--;) {
         r += ((char)(x & 255));
@@ -173,10 +173,10 @@ public:
             } else if (a.type == MESSAGE) {
                 lock_guard<mutex> guard(m_connection_lock);
                 command cmd;
-                parse_cmd(a.msg, cmd);
+                parse_cmd(a.msg->get_payload(), cmd);
                 con_list::iterator it;
                 for (it = m_connections.begin(); it != m_connections.end(); ++it) {
-                    m_server.send(*it,a.msg);
+                    m_server.send(*it, a.msg->get_payload(),  a.msg->get_opcode());
 
                 }
             } else {
