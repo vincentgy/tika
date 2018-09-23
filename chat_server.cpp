@@ -189,7 +189,12 @@ public:
             std::cout << "Connection Failed\n" << std::endl;
         }
     }
-
+    ~broadcast_server() {
+        if (m_connect) {
+            /* close the connection */
+            mysql_close(m_connect);
+        }
+    }
     void run(uint16_t port) {
         // listen on specified port
         m_server.listen(port);
@@ -310,8 +315,6 @@ protected:
             }
             /* free the result set */
             mysql_free_result(result);
-            /* close the connection */
-            mysql_close(m_connect);
             printf("Done.\n");
         }
         return chatList;
@@ -343,8 +346,6 @@ protected:
             }
             /* free the result set */
             mysql_free_result(result);
-            /* close the connection */
-            mysql_close(m_connect);
             printf("Done.\n");
             return user_id;
         }
