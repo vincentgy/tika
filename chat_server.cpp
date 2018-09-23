@@ -90,10 +90,40 @@ uint32_t unpack32le(const std::string& x) {
     return r;
 }
 
+std::string pack16le (uint16_t x) {
+    std::string r;
+
+    for (int i = 2; i--;) {
+        r += ((char)(x & 255));
+        x >>= 8;
+    }
+
+    return r;
+}
+
+uint32_t unpack16le(const std::string& x) {
+    uint32_t r = 0;
+
+    for (int i = 2; i--;) {
+        r = ((r << 8) >> 0) + (uint32_t)(x[i]);
+    }
+
+    return r;
+}
+
 void parse_cmd(const std::string& cmdq, command& r) {
     uint32_t opcode = (uint32_t)cmdq[0];
     r.opcode = opcode;
     std::cout<< "opcode:"<<opcode<<std::endl;
+    switch (opcode) {
+        case opCode::NEWMSG:
+        case opCode::OLDMSG:
+            r.chatId = unpack32le(cmdq.substr(1, 4));
+            r.userId = unpack32le(cmdq.substr(5, 4));
+            int len = unpack16le(cmdq.substr(9, 2));
+            r.message = cmdq.substr(11, len);
+        break;
+    }
 }
 
 class broadcast_server {
@@ -168,15 +198,20 @@ public:
                 lock_guard<mutex> guard(m_connection_lock);
                 m_connections.insert(a.hdl);
             } else if (a.type == UNSUBSCRIBE) {
+                std::cout<<"UNSUBSCRIBE"<<a.hdl<<std::endl;
                 lock_guard<mutex> guard(m_connection_lock);
                 m_connections.erase(a.hdl);
             } else if (a.type == MESSAGE) {
                 lock_guard<mutex> guard(m_connection_lock);
                 command cmd;
                 parse_cmd(a.msg->get_payload(), cmd);
+                if (cmd.opcode == opcode::NEWMSG) {
+                    std::cout<<"NEWMSG:"<<cmd.chatId<<','<<cmd.userId<<','<<cmd.message<<std::endl;
+                }
                 con_list::iterator it;
                 for (it = m_connections.begin(); it != m_connections.end(); ++it) {
-                    m_server.send(*it, a.msg->get_payload(),  a.msg->get_opcode());
+                    std::cout<<"xcode"<<a.msg->get_opcode()<<a.msg->get_payload()<<std::endl;
+                    m_server.send(*it, a.msg->get_payload()<<endl;,  a.msg->get_opcode());
 
                 }
             } else {

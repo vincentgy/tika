@@ -89,6 +89,16 @@ function pack16le($x) {
     return $r;
 };
 
+function unpack16le($x) {
+    $r = 0;
+
+    for ($i = 2; $i--;) {
+        $r = (($r << 8) >> 0) + ord($x[$i]);
+    }
+
+    return $r;
+};
+
 function hex_dump($data, $newline="\n")
 {
   static $from = '';
@@ -117,16 +127,6 @@ function hex_dump($data, $newline="\n")
     $offset += $width;
   }
 }
-
-function unpack16le($x) {
-    $r = 0;
-
-    for ($i = 2; $i--;) {
-        $r = (($r << 8) >> 0) + ord($x[$i]);
-    }
-
-    return $r;
-};
 
 function disconnect($socket) {
 	global $clients;
