@@ -128,7 +128,8 @@ void parse_cmd(const std::string& cmdq, command& r) {
 }
 
 std::string assemble_cmd(const command& cmd) {
-    std::string buf((char)cmd.opcode);
+    std::string buf;
+    buf += ((char)cmd.opcode);
     switch(cmd.opcode) {
         case OPCODE::NEWMSG:
         case OPCODE::OLDMSG:
