@@ -276,7 +276,7 @@ protected:
         MYSQL_ROW row;
         int state;
         uint32_t user_id = 0;
-        std::string sql = std::string("SELECT user_id FROM sessions WHERE token = ") + token;
+        std::string sql = std::string("SELECT user_id FROM sessions WHERE token = '") + token + std::string("'");
         if (m_connect) {
             state = mysql_query(m_connect, sql.c_str());
             if( state != 0 ) {
