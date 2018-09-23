@@ -55,7 +55,7 @@ struct command
     uint32_t count;
     std::string token;
     std::string message;
-    std::std::vector<uint32_t> users;
+    std::vector<uint32_t> users;
 };
 
 struct action {
