@@ -252,7 +252,7 @@ public:
                     case OPCODE::CLIENTID:
                         uint32_t user_id = getuseridbytoken(cmd.token);
                         std::cout<<"CLIENTID:"<<user_id<<','<<std::endl;
-    
+                    break;
                     case OPCODE::NEWMSG:
                         std::cout<<"NEWMSG:"<<cmd.chatId<<','<<cmd.userId<<','<<cmd.message<<std::endl;
                         response_str = assemble_cmd(cmd);
