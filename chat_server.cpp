@@ -123,6 +123,11 @@ void parse_cmd(const std::string& cmdq, command& r) {
     r.opcode = opcode;
     std::cout<< "opcode:"<<opcode<<std::endl;
     switch (opcode) {
+        case OPCODE::CLIENTID:
+            int len = unpack16le(cmdq.substr(1, 2));
+            std::string token = cmdq.substr(3, len);
+            r.token = token;
+        break;
         case OPCODE::NEWMSG:
         case OPCODE::OLDMSG:
             r.chatId = unpack32le(cmdq.substr(1, 4));
@@ -157,15 +162,15 @@ public:
         m_server.set_close_handler(bind(&broadcast_server::on_close,this,::_1));
         m_server.set_message_handler(bind(&broadcast_server::on_message,this,::_1,::_2));
 
-        connect = mysql_init(NULL);
-        if (!connect)
+        m_connect = mysql_init(NULL);
+        if (!m_connect)
         {
             std::cout << "Mysql Initialization Failed" << std::endl;
         }
 
-        connect = mysql_real_connect(connect, SERVER, USER, PASSWORD, DATABASE, 0, NULL, 0);
+        m_connect = mysql_real_connect(m_connect, SERVER, USER, PASSWORD, DATABASE, 0, NULL, 0);
 
-        if (connect)
+        if (m_connect)
         {
             std::cout << "Connection Succeeded\n" << std::endl;
         }
@@ -243,9 +248,15 @@ public:
                 command cmd;
                 std::string response_str;
                 parse_cmd(a.msg->get_payload(), cmd);
-                if (cmd.opcode == OPCODE::NEWMSG) {
-                    std::cout<<"NEWMSG:"<<cmd.chatId<<','<<cmd.userId<<','<<cmd.message<<std::endl;
-                    response_str = assemble_cmd(cmd);
+                switch (cmd.opcode) {
+                    case OPCODE::CLIENTID:
+                        uint32_t user_id = getuseridbytoken(cmd.token);
+                        std::cout<<"CLIENTID:"<<user_id<<','<<std::endl;
+    
+                    case OPCODE::NEWMSG:
+                        std::cout<<"NEWMSG:"<<cmd.chatId<<','<<cmd.userId<<','<<cmd.message<<std::endl;
+                        response_str = assemble_cmd(cmd);
+                    break;
                 }
                 con_list::iterator it;
                 for (it = m_connections.begin(); it != m_connections.end(); ++it) {
@@ -256,6 +267,40 @@ public:
             } else {
                 // undefined.
             }
+        }
+    }
+protected:
+    uint32_t getuseridbytoken(const std::string& token) {
+        MYSQL_RES *result;
+        MYSQL_ROW row;
+        int state;
+        uint32_t user_id = 0;
+        std::string sql = std::string("SELECT user_id FROM sessions WHERE token = ") + token;
+        if (m_connect) {
+            state = mysql_query(m_connect, sql.c_str());
+            if( state != 0 ) {
+                printf(mysql_error(m_connect));
+                return 0;
+            }
+            /* must call mysql_store_result() before we can issue any
+             * other query calls
+             */  
+            result = mysql_store_result(m_connect);
+            printf("Rows: %d\n", mysql_num_rows(result));
+            /* process each row in the result set */
+            while( ( row = mysql_fetch_row(result)) != NULL ) {
+                printf("id: %s, val: %s\n", 
+                       (row[0] ? row[0] : "NULL"), 
+                       (row[1] ? row[1] : "NULL"));
+                user_id = row[0];
+
+            }
+            /* free the result set */
+            mysql_free_result(result);
+            /* close the connection */
+            mysql_close(connection);
+            printf("Done.\n");
+            return user_id;
         }
     }
 private:
@@ -269,7 +314,7 @@ private:
     mutex m_action_lock;
     mutex m_connection_lock;
     condition_variable m_action_cond;
-    MYSQL *connect;
+    MYSQL *m_connect;
 };
 
 int main() {
