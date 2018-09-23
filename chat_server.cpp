@@ -4,6 +4,7 @@
 
 #include <iostream>
 #include <set>
+#include <map>
 #include <stdint.h>
 
 /*#include <boost/thread.hpp>
@@ -126,6 +127,18 @@ void parse_cmd(const std::string& cmdq, command& r) {
     }
 }
 
+std::string assemble_cmd(const command& cmd) {
+    std::string buf((char)cmd.opcode);
+    switch(cmd.opcode) {
+        case OPCODE::NEWMSG:
+        case OPCODE::OLDMSG:
+            buf += pack32le(cmd.chatId);
+            buf += pack32le(cmd.userId);
+            buf += pack16le(cmd.message.length());
+            buf += cmd.message;
+    }
+    return buf;
+}
 class broadcast_server {
 public:
     broadcast_server() {
@@ -204,14 +217,16 @@ public:
             } else if (a.type == MESSAGE) {
                 lock_guard<mutex> guard(m_connection_lock);
                 command cmd;
+                std::string response_str;
                 parse_cmd(a.msg->get_payload(), cmd);
                 if (cmd.opcode == OPCODE::NEWMSG) {
                     std::cout<<"NEWMSG:"<<cmd.chatId<<','<<cmd.userId<<','<<cmd.message<<std::endl;
+                    response_str = assemble_cmd(cmd);
                 }
                 con_list::iterator it;
                 for (it = m_connections.begin(); it != m_connections.end(); ++it) {
                     std::cout<<"xcode"<<a.msg->get_opcode()<<a.msg->get_payload()<<std::endl;
-                    m_server.send(*it, a.msg->get_payload(),  a.msg->get_opcode());
+                    m_server.send(*it, response_str,  a.msg->get_opcode());
 
                 }
             } else {
@@ -224,6 +239,7 @@ private:
 
     server m_server;
     con_list m_connections;
+    std::map<uint32_t, con_list> m_roomConns;
     std::queue<action> m_actions;
 
     mutex m_action_lock;
