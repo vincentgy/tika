@@ -198,7 +198,7 @@ public:
                 lock_guard<mutex> guard(m_connection_lock);
                 m_connections.insert(a.hdl);
             } else if (a.type == UNSUBSCRIBE) {
-                std::cout<<"UNSUBSCRIBE"<<(long)a.hdl<<std::endl;
+                std::cout<<"UNSUBSCRIBE"<<static_cast<long*>a.hdl<<std::endl;
                 lock_guard<mutex> guard(m_connection_lock);
                 m_connections.erase(a.hdl);
             } else if (a.type == MESSAGE) {
