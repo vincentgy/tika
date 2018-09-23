@@ -289,6 +289,7 @@ protected:
         int state;
         std::vector<uint32_t> chatList;
         std::string sql = std::string("SELECT DISTINCT(chat_id) FROM chat_users WHERE user_id = ") + std::to_string(user_id);
+        std::cout<<"sql:"<<sql<<std::endl;
         if (m_connect) {
             state = mysql_query(m_connect, sql.c_str());
             if( state != 0 ) {
