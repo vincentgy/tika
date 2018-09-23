@@ -160,7 +160,7 @@ public:
         connect = mysql_init(NULL);
         if (!connect)
         {
-            std::out << "Mysql Initialization Failed" << std::endl;
+            std::cout << "Mysql Initialization Failed" << std::endl;
         }
 
         connect = mysql_real_connect(connect, SERVER, USER, PASSWORD, DATABASE, 0, NULL, 0);
