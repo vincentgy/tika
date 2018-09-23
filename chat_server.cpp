@@ -7,6 +7,7 @@
 #include <map>
 #include <stdint.h>
 #include <mysql.h>
+#include <string>
 /*#include <boost/thread.hpp>
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/condition_variable.hpp>*/
@@ -63,6 +64,7 @@ struct command
     std::string token;
     std::string message;
     std::vector<uint32_t> users;
+    std::vector<uint32_t> chatList;
 };
 
 struct action {
@@ -149,6 +151,13 @@ std::string assemble_cmd(const command& cmd) {
             buf += pack32le(cmd.userId);
             buf += pack16le(cmd.message.length());
             buf += cmd.message;
+        break;
+        case OPCODE::CHATLIST:
+            buf += pack16le(cmd.chatList.size());
+            for(int i = 0; i < cmd.chatList.size(); i++) {
+                buf += pack32le(cmd.chatList[i]);
+            }
+        break;
     }
     return buf;
 }
@@ -253,6 +262,9 @@ public:
                     case OPCODE::CLIENTID:
                         uint32_t user_id = getuseridbytoken(cmd.token);
                         std::cout<<"CLIENTID:"<<user_id<<','<<std::endl;
+                        cmd.opcode = OPCODE::CHATLIST;
+                        cmd.chatList = getchatlist(user_id);
+                        response_str = assemble_cmd(cmd);
                     break;
                     case OPCODE::NEWMSG:
                         std::cout<<"NEWMSG:"<<cmd.chatId<<','<<cmd.userId<<','<<cmd.message<<std::endl;
@@ -271,6 +283,39 @@ public:
         }
     }
 protected:
+    std::vector<uint32_t> getchatlist(uint32_t user_id) {
+        MYSQL_RES *result;
+        MYSQL_ROW row;
+        int state;
+        std::vector<uint32_t> chatList;
+        std::string sql = std::string("SELECT DISTINCT(chat_id) FROM chat_users WHERE user_id = ") + std::to_string(user_id);
+        if (m_connect) {
+            state = mysql_query(m_connect, sql.c_str());
+            if( state != 0 ) {
+                printf(mysql_error(m_connect));
+                return 0;
+            }
+            /* must call mysql_store_result() before we can issue any
+             * other query calls
+             */  
+            result = mysql_store_result(m_connect);
+            printf("Rows: %d\n", mysql_num_rows(result));
+            /* process each row in the result set */
+            while( ( row = mysql_fetch_row(result)) != NULL ) {
+                printf("id: %s, val: %s\n", 
+                       (row[0] ? row[0] : "NULL"), 
+                       (row[1] ? row[1] : "NULL"));
+                chatList.push_back(atoi(row[0]));
+            }
+            /* free the result set */
+            mysql_free_result(result);
+            /* close the connection */
+            mysql_close(m_connect);
+            printf("Done.\n");
+        }
+        return chatList;
+    }
+
     uint32_t getuseridbytoken(const std::string& token) {
         MYSQL_RES *result;
         MYSQL_ROW row;
@@ -301,6 +346,9 @@ protected:
             mysql_close(m_connect);
             printf("Done.\n");
             return user_id;
+        }
+        else {
+            return 0;
         }
     }
 private:
