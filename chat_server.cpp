@@ -6,11 +6,17 @@
 #include <set>
 #include <map>
 #include <stdint.h>
-
+#include <mysql.h>
 /*#include <boost/thread.hpp>
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/condition_variable.hpp>*/
 #include <websocketpp/common/thread.hpp>
+
+#define SERVER "localhost"
+#define USER "root"
+#define PASSWORD "r00t"
+#define DATABASE "tikadb"
+
 
 typedef websocketpp::server<websocketpp::config::asio> server;
 
@@ -150,6 +156,23 @@ public:
         m_server.set_open_handler(bind(&broadcast_server::on_open,this,::_1));
         m_server.set_close_handler(bind(&broadcast_server::on_close,this,::_1));
         m_server.set_message_handler(bind(&broadcast_server::on_message,this,::_1,::_2));
+
+        connect = mysql_init(NULL);
+        if (!connect)
+        {
+            cout << "Mysql Initialization Failed";
+        }
+
+        connect = mysql_real_connect(connect, SERVER, USER, PASSWORD, DATABASE, 0, NULL, 0);
+
+        if (connect)
+        {
+            cout << "Connection Succeeded\n";
+        }
+        else
+        {
+            cout << "Connection Failed\n";
+        }
     }
 
     void run(uint16_t port) {
@@ -246,6 +269,7 @@ private:
     mutex m_action_lock;
     mutex m_connection_lock;
     condition_variable m_action_cond;
+    MYSQL *connect;
 };
 
 int main() {
