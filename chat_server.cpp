@@ -125,6 +125,9 @@ void parse_cmd(const std::string& cmdq, command& r) {
     int len = 0;
     r.opcode = opcode;
     std::cout<< "opcode:"<<r.opcode<<std::endl;
+    for (int i =0;i<cmdq.length();i++) {
+        std::cout<<std::hex<<(uint32_t)cmdq[i];
+    }
     switch (opcode) {
         case OPCODE::CLIENTID:
             len = unpack16le(cmdq.substr(1, 2));
