@@ -280,7 +280,7 @@ public:
                         response_str = assemble_cmd(cmd);
                     break;
                     case OPCODE::JOIN:
-                        std::std::vector<uint32_t> userList = getparticipants(cmd.chatId);
+                        std::vector<uint32_t> userList = getparticipants(cmd.chatId);
                         for (int index = 0; index < userList.size();index++) {
                             std::string str;
                             str += ((char)cmd.opcode);
