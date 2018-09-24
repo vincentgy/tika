@@ -317,7 +317,7 @@ protected:
             state = mysql_query(m_connect, sql.c_str());
             if( state != 0 ) {
                 printf(mysql_error(m_connect));
-                return chatList;
+                return userList;
             }
             /* must call mysql_store_result() before we can issue any
              * other query calls
