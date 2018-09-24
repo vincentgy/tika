@@ -283,7 +283,7 @@ public:
                         cmd.chatList = getchatlist(user_id);
                         response_str = assemble_cmd(cmd);
                         m_server.send(a.hdl, response_str,  a.msg->get_opcode());
-                        for (int cIndex = 0; cIndex < cmd.chatList.length(); i++) {
+                        for (int cIndex = 0; cIndex < cmd.chatList.length(); cIndex++) {
                             std::vector<uint32_t> userList = getparticipants( cmd.chatList[cIndex]);
                             for (int index = 0; index < userList.size();index++) {
                                 std::cout<< 'JOINED:'<<userList[index]<<std::endl;
