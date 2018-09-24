@@ -56,6 +56,8 @@ enum OPCODE {
 
 struct command
 {
+    command(): opcode(0), chatId(0), userId(0), messageId(0), count(0), token(std::string()), message(std::string()) {
+    }
     uint32_t opcode;
     uint32_t chatId;
     uint32_t userId;
@@ -128,49 +130,45 @@ void parse_cmd(const std::string& cmdq, command& r) {
     for (int i =0;i<cmdq.length();i++) {
         std::cout<<std::hex<<(uint32_t)cmdq[i];
     }
-    switch (opcode) {
-        case OPCODE::CLIENTID:
-            len = unpack16le(cmdq.substr(1, 2));
-            std::string token = cmdq.substr(3, len);
-            r.token = token;
-        break;
-        case OPCODE::JOIN:
-            std::cout<<"parse JOIN"<<std::endl;
-            r.chatId = unpack32le(cmdq.substr(1, 4));
-            r.userId = unpack32le(cmdq.substr(5, 4));
-        break;
-        case OPCODE::NEWMSG:
-        case OPCODE::OLDMSG:
-            r.chatId = unpack32le(cmdq.substr(1, 4));
-            r.userId = unpack32le(cmdq.substr(5, 4));
-            len = unpack16le(cmdq.substr(9, 2));
-            r.message = cmdq.substr(11, len);
-        break;
+    if (OPCODE::CLIENTID == opcode) {
+        len = unpack16le(cmdq.substr(1, 2));
+        std::string token = cmdq.substr(3, len);
+        r.token = token;
+    }
+    else if(OPCODE::JOIN == opcode) {
+        std::cout<<"parse JOIN"<<std::endl;
+        r.chatId = unpack32le(cmdq.substr(1, 4));
+        r.userId = unpack32le(cmdq.substr(5, 4));
+    }
+    else if(OPCODE::NEWMSG == opcode || OPCODE::OLDMSG == opcode) {
+        r.chatId = unpack32le(cmdq.substr(1, 4));
+        r.userId = unpack32le(cmdq.substr(5, 4));
+        len = unpack16le(cmdq.substr(9, 2));
+        r.message = cmdq.substr(11, len);
     }
 }
 
 std::string assemble_cmd(const command& cmd) {
     std::string buf;
     buf += ((char)cmd.opcode);
-    switch(cmd.opcode) {
-        case OPCODE::JOIN:
-            buf += pack32le(cmd.chatId);
-            buf += pack32le(cmd.userId);
-        break;
-        case OPCODE::NEWMSG:
-        case OPCODE::OLDMSG:
-            buf += pack32le(cmd.chatId);
-            buf += pack32le(cmd.userId);
-            buf += pack16le(cmd.message.length());
-            buf += cmd.message;
-        break;
-        case OPCODE::CHATLIST:
-            buf += pack16le(cmd.chatList.size());
-            for(int i = 0; i < cmd.chatList.size(); i++) {
-                buf += pack32le(cmd.chatList[i]);
-            }
-        break;
+
+    if(OPCODE::JOIN == cmd.opcode) {
+        buf += pack32le(cmd.chatId);
+        buf += pack32le(cmd.userId);
     }
+    else if(OPCODE::NEWMSG == cmd.opcode || OPCODE::OLDMSG == cmd.opcode) {
+        buf += pack32le(cmd.chatId);
+        buf += pack32le(cmd.userId);
+        buf += pack16le(cmd.message.length());
+        buf += cmd.message;
+    }
+    else if (OPCODE::CHATLIST ==  cmd.opcode) {
+        buf += pack16le(cmd.chatList.size());
+        for(int i = 0; i < cmd.chatList.size(); i++) {
+            buf += pack32le(cmd.chatList[i]);
+        }
+    }
+
     return buf;
 }
 class broadcast_server {
