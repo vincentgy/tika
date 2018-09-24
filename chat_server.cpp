@@ -282,6 +282,18 @@ public:
                         cmd.opcode = OPCODE::CHATLIST;
                         cmd.chatList = getchatlist(user_id);
                         response_str = assemble_cmd(cmd);
+                        m_server.send(a.hdl, response_str,  a.msg->get_opcode());
+                        for (int cIndex = 0; cIndex < cmd.chatList.length(); i++) {
+                            std::vector<uint32_t> userList = getparticipants( cmd.chatList[cIndex]);
+                            for (int index = 0; index < userList.size();index++) {
+                                std::cout<< 'JOINED:'<<userList[index]<<std::endl;
+                                std::string str;
+                                str += ((char)cmd.opcode);
+                                str += pack32le(cmd.chatId);
+                                str += pack32le(userList[index]);
+                                m_server.send(a.hdl, str,  a.msg->get_opcode());
+                            }
+                        }
                     break;
                     case OPCODE::JOIN:
                         std::cout<<"received JOIN"<<std::endl;
