@@ -131,6 +131,10 @@ void parse_cmd(const std::string& cmdq, command& r) {
             std::string token = cmdq.substr(3, len);
             r.token = token;
         break;
+        case OPCODE::JOIN:
+            r.chatId = unpack32le(cmdq.substr(1, 4));
+            r.userId = unpack32le(cmdq.substr(5, 4));
+        break;
         case OPCODE::NEWMSG:
         case OPCODE::OLDMSG:
             r.chatId = unpack32le(cmdq.substr(1, 4));
@@ -145,6 +149,10 @@ std::string assemble_cmd(const command& cmd) {
     std::string buf;
     buf += ((char)cmd.opcode);
     switch(cmd.opcode) {
+        case OPCODE::JOIN:
+            buf += pack32le(cmd.chatId);
+            buf += pack32le(cmd.userId);
+        break;
         case OPCODE::NEWMSG:
         case OPCODE::OLDMSG:
             buf += pack32le(cmd.chatId);
@@ -271,6 +279,16 @@ public:
                         cmd.chatList = getchatlist(user_id);
                         response_str = assemble_cmd(cmd);
                     break;
+                    case OPCODE::JOIN:
+                        std::std::vector<uint32_t> userList = getparticipants(cmd.chatId);
+                        for (int index = 0; index < userList.size();index++) {
+                            std::string str;
+                            str += ((char)cmd.opcode);
+                            str += pack32le(cmd.chatId);
+                            str += pack32le(userList[index]);
+                            m_server.send(a.hdl, str,  a.msg->get_opcode());
+                        }
+                    break;
                     case OPCODE::NEWMSG:
                         std::cout<<"NEWMSG:"<<cmd.chatId<<','<<cmd.userId<<','<<cmd.message<<std::endl;
                         response_str = assemble_cmd(cmd);
@@ -288,6 +306,38 @@ public:
         }
     }
 protected:
+    std::vector<uint32_t> getparticipants(uint32_t chat_id) {
+        MYSQL_RES *result;
+        MYSQL_ROW row;
+        int state;
+        std::vector<uint32_t> userList;
+        std::string sql = std::string("SELECT user_id FROM chat_users WHERE chat_id = ") + std::to_string(chat_id);
+        std::cout<<"sql:"<<sql<<std::endl;
+        if (m_connect) {
+            state = mysql_query(m_connect, sql.c_str());
+            if( state != 0 ) {
+                printf(mysql_error(m_connect));
+                return chatList;
+            }
+            /* must call mysql_store_result() before we can issue any
+             * other query calls
+             */  
+            result = mysql_store_result(m_connect);
+            printf("Rows: %d\n", mysql_num_rows(result));
+            /* process each row in the result set */
+            while( ( row = mysql_fetch_row(result)) != NULL ) {
+                printf("id: %s, val: %s\n", 
+                       (row[0] ? row[0] : "NULL"), 
+                       (row[1] ? row[1] : "NULL"));
+                userList.push_back(atoi(row[0]));
+            }
+            /* free the result set */
+            mysql_free_result(result);
+            printf("Done.\n");
+        }
+        return userList;
+    }
+
     std::vector<uint32_t> getchatlist(uint32_t user_id) {
         MYSQL_RES *result;
         MYSQL_ROW row;
