@@ -1,5 +1,6 @@
 <?php
 include_once "job.php";
+include_once "application.php";
 
 class WATCHLIST
 {
