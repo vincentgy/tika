@@ -282,6 +282,7 @@ public:
                     case OPCODE::JOIN:
                         std::vector<uint32_t> userList = getparticipants(cmd.chatId);
                         for (int index = 0; index < userList.size();index++) {
+                            std::cout<< 'JOINED:'<<userList[index]<<std::endl;
                             std::string str;
                             str += ((char)cmd.opcode);
                             str += pack32le(cmd.chatId);
