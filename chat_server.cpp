@@ -275,6 +275,7 @@ public:
                 command cmd;
                 std::string response_str;
                 parse_cmd(a.msg->get_payload(), cmd);
+                std::cout<< "cmd opCode:" << cmd.opcode<<std::endl;
                 switch (cmd.opcode) {
                     case OPCODE::CLIENTID:
                         uint32_t user_id = getuseridbytoken(cmd.token);
