@@ -277,6 +277,12 @@ public:
                 std::cout<<"UNSUBSCRIBE"<<std::endl;
                 lock_guard<mutex> guard(m_connection_lock);
                 m_connections.erase(a.hdl);
+                for (auto rit = m_roomConns.begin(); rit != m_roomConns.end(); ++ mit) {
+                    *rit.erase(a.hdl);
+                }
+                for (auto uit = m_userConns.begin(); uit != m_userConns.end(); ++ uit) {
+                    *uit.erase(a.hdl);
+                }
             } else if (a.type == MESSAGE) {
                 lock_guard<mutex> guard(m_connection_lock);
                 command cmd;
