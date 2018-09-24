@@ -288,7 +288,7 @@ public:
                             for (int index = 0; index < userList.size();index++) {
                                 std::cout<< 'JOINED:'<<userList[index]<<std::endl;
                                 std::string str;
-                                str += ((char)cmd.opcode);
+                                str += ((char)OPCODE::JOIN);
                                 str += pack32le(cmd.chatId);
                                 str += pack32le(userList[index]);
                                 m_server.send(a.hdl, str,  a.msg->get_opcode());
