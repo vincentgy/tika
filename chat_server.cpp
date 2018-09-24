@@ -280,6 +280,7 @@ public:
                         response_str = assemble_cmd(cmd);
                     break;
                     case OPCODE::JOIN:
+                        std::cout<<"received JOIN"<<std::endl;
                         std::vector<uint32_t> userList = getparticipants(cmd.chatId);
                         for (int index = 0; index < userList.size();index++) {
                             std::cout<< 'JOINED:'<<userList[index]<<std::endl;
@@ -297,7 +298,6 @@ public:
                 }
                 con_list::iterator it;
                 for (it = m_connections.begin(); it != m_connections.end(); ++it) {
-                    std::cout<<"xcode"<<a.msg->get_opcode()<<a.msg->get_payload()<<std::endl;
                     m_server.send(*it, response_str,  a.msg->get_opcode());
 
                 }
