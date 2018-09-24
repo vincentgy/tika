@@ -277,7 +277,7 @@ public:
                 std::cout<<"UNSUBSCRIBE"<<std::endl;
                 lock_guard<mutex> guard(m_connection_lock);
                 m_connections.erase(a.hdl);
-                for (auto rit = m_roomConns.begin(); rit != m_roomConns.end(); ++ mit) {
+                for (auto rit = m_roomConns.begin(); rit != m_roomConns.end(); ++ rit) {
                     *rit.erase(a.hdl);
                 }
                 for (auto uit = m_userConns.begin(); uit != m_userConns.end(); ++ uit) {
