@@ -312,7 +312,7 @@ public:
                         std::cout<<"NEWMSG:"<<cmd.chatId<<','<<cmd.userId<<','<<cmd.message<<std::endl;
                         response_str = assemble_cmd(cmd);
                     }
-                }
+
                 con_list::iterator it;
                 for (it = m_connections.begin(); it != m_connections.end(); ++it) {
                     m_server.send(*it, response_str,  a.msg->get_opcode());
