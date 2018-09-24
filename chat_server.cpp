@@ -286,12 +286,20 @@ public:
 
                 if (OPCODE::CLIENTID == cmd.opcode) {
                         uint32_t user_id = getuseridbytoken(cmd.token);
+                        if (m_userConns.find(user_id) == m_userConns.end()) {
+                            m_userConns[user_id] = con_list();
+                        }
+                        m_userConns[user_id].insert(a.hdl);
                         std::cout<<"CLIENTID:"<<user_id<<','<<std::endl;
                         cmd.opcode = OPCODE::CHATLIST;
                         cmd.chatList = getchatlist(user_id);
                         response_str = assemble_cmd(cmd);
                         m_server.send(a.hdl, response_str,  a.msg->get_opcode());
                         for (int cIndex = 0; cIndex < cmd.chatList.size(); cIndex++) {
+                            if (m_roomConns.find(cmd.chatList[cIndex]) == m_roomConns.end()) {
+                                m_roomConns[cmd.chatList[cIndex]] = con_list();
+                            }
+                            m_roomConns[cmd.chatList[cIndex]].insert(a.hdl);
                             std::vector<uint32_t> userList = getparticipants(cmd.chatList[cIndex]);
                             for (int index = 0; index < userList.size();index++) {
                                 std::cout<< 'JOINED:'<<userList[index]<<std::endl;
@@ -306,6 +314,10 @@ public:
                     else if (OPCODE::JOIN == cmd.opcode) {
                         std::cout<<"received JOIN"<<std::endl;
                         std::vector<uint32_t> userList = getparticipants(cmd.chatId);
+                        if (m_roomConns.find(cmd.chatId) == m_roomConns.end()) {
+                            m_roomConns[cmd.chatId] = con_list();
+                        }
+                        m_roomConns[cmd.chatId].insert(a.hdl);
                         for (int index = 0; index < userList.size();index++) {
                             std::cout<< 'JOINED:'<<userList[index]<<std::endl;
                             std::string str;
@@ -318,23 +330,32 @@ public:
                     else if(OPCODE::NEWMSG == cmd.opcode) {
                         std::cout<<"NEWMSG:"<<cmd.chatId<<','<<cmd.userId<<','<<cmd.message<<std::endl;
                         response_str = assemble_cmd(cmd);
+                        sendToRoom(cmd.chatId, response_str, a.msg->get_opcode());
                     }
                     else if(OPCODE::NEWROOM == cmd.opcode) {
                         uint32_t cId = createchat(cmd.userList);
                         cmd.chatId = cId;
                         response_str = assemble_cmd(cmd);
-                        m_server.send(a.hdl, response_str,  a.msg->get_opcode());
+                        for (int i = 0; i < cmd.userList.size(); i++) {
+                            sendToUser(cmd.userList[i], response_str, a.msg->get_opcode())
+                        }
                     }
-                con_list::iterator it;
-                for (it = m_connections.begin(); it != m_connections.end(); ++it) {
-                    m_server.send(*it, response_str,  a.msg->get_opcode());
-                }
             } else {
                 // undefined.
             }
         }
     }
 protected:
+    void sendToRoom(uint32_t chat_id, const std::string& str, const frame::opcode::value& mOpcode) {
+        for (con_list::iterator it = m_roomConns[chat_id].begin(); it != m_roomConns[chat_id].end(); ++it) {
+            m_server.send(*it, str, mOpcode);
+        }
+    }
+    void sendToUser(uint32_t user_id, const std::string& str, const frame::opcode::value& mOpcode) {
+        for (con_list::iterator it = m_userConns[user_id].begin(); it != m_userConns[user_id].end(); ++it) {
+            m_server.send(*it, str, mOpcode);
+        }
+    }
     bool addchatuser (uint32_t chat_id, uint32_t user_id) {
         int state;
         std::string sql = std::string("INSERT INTO chat_users (chat_id, user_id) VALUES (") +
