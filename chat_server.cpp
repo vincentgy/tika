@@ -284,12 +284,12 @@ public:
                         response_str = assemble_cmd(cmd);
                         m_server.send(a.hdl, response_str,  a.msg->get_opcode());
                         for (int cIndex = 0; cIndex < cmd.chatList.size(); cIndex++) {
-                            std::vector<uint32_t> userList = getparticipants( cmd.chatList[cIndex]);
+                            std::vector<uint32_t> userList = getparticipants(cmd.chatList[cIndex]);
                             for (int index = 0; index < userList.size();index++) {
                                 std::cout<< 'JOINED:'<<userList[index]<<std::endl;
                                 std::string str;
                                 str += ((char)OPCODE::JOIN);
-                                str += pack32le(cmd.chatId);
+                                str += pack32le(cmd.chatList[cIndex]);
                                 str += pack32le(userList[index]);
                                 m_server.send(a.hdl, str,  a.msg->get_opcode());
                             }
