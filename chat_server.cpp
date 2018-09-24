@@ -1,7 +1,7 @@
 #include <websocketpp/config/asio_no_tls.hpp>
 
 #include <websocketpp/server.hpp>
-
+#include <websocketpp/frame.hpp>
 #include <iostream>
 #include <set>
 #include <map>
@@ -324,21 +324,20 @@ public:
                             str += ((char)cmd.opcode);
                             str += pack32le(cmd.chatId);
                             str += pack32le(userList[index]);
-                            m_server.send(a.hdl, str,  a.msg->get_opcode());
+                            m_server.send(a.hdl, str, a.msg->get_opcode());
                         }
                     }
                     else if(OPCODE::NEWMSG == cmd.opcode) {
                         std::cout<<"NEWMSG:"<<cmd.chatId<<','<<cmd.userId<<','<<cmd.message<<std::endl;
                         response_str = assemble_cmd(cmd);
-                        sendToRoom(cmd.chatId, response_str);
-                        std::cout<<'msg type:'<<(int)a.msg->get_opcode()<<std::endl;
+                        sendToRoom(cmd.chatId, response_str, a.msg->get_opcode());
                     }
                     else if(OPCODE::NEWROOM == cmd.opcode) {
                         uint32_t cId = createchat(cmd.userList);
                         cmd.chatId = cId;
                         response_str = assemble_cmd(cmd);
                         for (int i = 0; i < cmd.userList.size(); i++) {
-                            sendToUser(cmd.userList[i], response_str);
+                            sendToUser(cmd.userList[i], response_str, a.msg->get_opcode());
                         }
                     }
             } else {
@@ -347,12 +346,12 @@ public:
         }
     }
 protected:
-    void sendToRoom(uint32_t chat_id, const std::string& str) {
+    void sendToRoom(uint32_t chat_id, const std::string& str, frame::opcode::value mOpcode = frame::opcode::value::TEXT) {
         for (con_list::iterator it = m_roomConns[chat_id].begin(); it != m_roomConns[chat_id].end(); ++it) {
             m_server.send(*it, str, mOpcode);
         }
     }
-    void sendToUser(uint32_t user_id, const std::string& str) {
+    void sendToUser(uint32_t user_id, const std::string& str, frame::opcode::value mOpcode = frame::opcode::value::TEXT) {
         for (con_list::iterator it = m_userConns[user_id].begin(); it != m_userConns[user_id].end(); ++it) {
             m_server.send(*it, str, mOpcode);
         }
