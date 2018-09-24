@@ -65,7 +65,7 @@ struct command
     uint32_t count;
     std::string token;
     std::string message;
-    std::vector<uint32_t> users;
+    std::vector<uint32_t> userList;
     std::vector<uint32_t> chatList;
 };
 
@@ -135,16 +135,22 @@ void parse_cmd(const std::string& cmdq, command& r) {
         std::string token = cmdq.substr(3, len);
         r.token = token;
     }
-    else if(OPCODE::JOIN == opcode) {
+    else if (OPCODE::JOIN == opcode) {
         std::cout<<"parse JOIN"<<std::endl;
         r.chatId = unpack32le(cmdq.substr(1, 4));
         r.userId = unpack32le(cmdq.substr(5, 4));
     }
-    else if(OPCODE::NEWMSG == opcode || OPCODE::OLDMSG == opcode) {
+    else if (OPCODE::NEWMSG == opcode || OPCODE::OLDMSG == opcode) {
         r.chatId = unpack32le(cmdq.substr(1, 4));
         r.userId = unpack32le(cmdq.substr(5, 4));
         len = unpack16le(cmdq.substr(9, 2));
         r.message = cmdq.substr(11, len);
+    }
+    else if (OPCODE::NEWROOM == opcode) {
+        len = unpack16le(cmdq.substr(1, 2));
+        for (int ui = 0; ui < len; ui++) {
+            r.userList.push_back(unpack32le(cmdq.substr(3 + (ui * 4), 4)));
+        }
     }
 }
 
@@ -167,6 +173,9 @@ std::string assemble_cmd(const command& cmd) {
         for(int i = 0; i < cmd.chatList.size(); i++) {
             buf += pack32le(cmd.chatList[i]);
         }
+    }
+    else if (OPCODE::NEWROOM == cmd.opcode) {
+        buf += cmd.chatId;
     }
 
     return buf;
@@ -310,11 +319,15 @@ public:
                         std::cout<<"NEWMSG:"<<cmd.chatId<<','<<cmd.userId<<','<<cmd.message<<std::endl;
                         response_str = assemble_cmd(cmd);
                     }
-
+                    else if(OPCODE::NEWROOM == cmd.opcode) {
+                        uint32_t cId = createchat(cmd.userList);
+                        cmd.chatId = cId;
+                        response_str = assemble_cmd(cmd);
+                        m_server.send(a.hdl, response_str,  a.msg->get_opcode());
+                    }
                 con_list::iterator it;
                 for (it = m_connections.begin(); it != m_connections.end(); ++it) {
                     m_server.send(*it, response_str,  a.msg->get_opcode());
-
                 }
             } else {
                 // undefined.
@@ -322,6 +335,40 @@ public:
         }
     }
 protected:
+    bool addchatuser (uint32_t chat_id, uint32_t user_id) {
+        int state;
+        std::string sql = std::string("INSERT INTO chat_users (chat_id, user_id) VALUES (") +
+                          std::to_string(chat_id) + std::string(",") + std::to_string(user_id) + std::string(")");
+        std::cout<<"sql:"<<sql<<std::endl;
+        if (m_connect) {
+            state = mysql_query(m_connect, sql.c_str());
+            if( state != 0 ) {
+                printf(mysql_error(m_connect));
+                return false;
+            }
+        }
+        return true;
+    }
+    uint32_t createchat(const std::vector<uint32_t>& users) {
+        int state;
+        uint32_t newId = 0;
+        std::string sql = std::string("INSERT INTO chats (created_at) VALUES (UNIX_TIMESTAMP())");
+        std::cout<<"sql:"<<sql<<std::endl;
+        if (m_connect) {
+            state = mysql_query(m_connect, sql.c_str());
+            if( state != 0 ) {
+                printf(mysql_error(m_connect));
+                return false;
+            }
+            else {
+                newId = (uint32_t)mysql_insert_id(m_connect);
+                for (int i = 0; i < users.size(); i++) {
+                    addchatuser(newId, users[i]);
+                }
+            }
+        }
+        return newId;
+    }
     std::vector<uint32_t> getparticipants(uint32_t chat_id) {
         MYSQL_RES *result;
         MYSQL_ROW row;
@@ -425,6 +472,7 @@ private:
     server m_server;
     con_list m_connections;
     std::map<uint32_t, con_list> m_roomConns;
+    std::map<uint32_t, con_list> m_userConns;
     std::queue<action> m_actions;
 
     mutex m_action_lock;
