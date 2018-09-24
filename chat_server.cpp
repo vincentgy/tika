@@ -124,7 +124,7 @@ void parse_cmd(const std::string& cmdq, command& r) {
     uint32_t opcode = (uint32_t)cmdq[0];
     int len = 0;
     r.opcode = opcode;
-    std::cout<< "opcode:"<<opcode<<std::endl;
+    std::cout<< "opcode:"<<r.opcode<<std::endl;
     switch (opcode) {
         case OPCODE::CLIENTID:
             len = unpack16le(cmdq.substr(1, 2));
@@ -132,6 +132,7 @@ void parse_cmd(const std::string& cmdq, command& r) {
             r.token = token;
         break;
         case OPCODE::JOIN:
+            std::cout<<"parse JOIN"<<std::endl;
             r.chatId = unpack32le(cmdq.substr(1, 4));
             r.userId = unpack32le(cmdq.substr(5, 4));
         break;
