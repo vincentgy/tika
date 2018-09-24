@@ -276,9 +276,8 @@ public:
                 std::string response_str;
                 parse_cmd(a.msg->get_payload(), cmd);
                 std::cout<< "cmd opCode:" << cmd.opcode<<std::endl;
-                OPCODE mOpcode =  static_cast<OPCODE>(cmd.opcode);
-                switch (mOpcode) {
-                    case OPCODE::CLIENTID:
+
+                if (OPCODE::CLIENTID == cmd.opcode) {
                         uint32_t user_id = getuseridbytoken(cmd.token);
                         std::cout<<"CLIENTID:"<<user_id<<','<<std::endl;
                         cmd.opcode = OPCODE::CHATLIST;
@@ -296,8 +295,8 @@ public:
                                 m_server.send(a.hdl, str,  a.msg->get_opcode());
                             }
                         }
-                    break;
-                    case OPCODE::JOIN:
+                    }
+                    else if (OPCODE::JOIN == cmd.opcode) {
                         std::cout<<"received JOIN"<<std::endl;
                         std::vector<uint32_t> userList = getparticipants(cmd.chatId);
                         for (int index = 0; index < userList.size();index++) {
@@ -308,11 +307,11 @@ public:
                             str += pack32le(userList[index]);
                             m_server.send(a.hdl, str,  a.msg->get_opcode());
                         }
-                    break;
-                    case OPCODE::NEWMSG:
+                    }
+                    else if(OPCODE::NEWMSG == cmd.opcode) {
                         std::cout<<"NEWMSG:"<<cmd.chatId<<','<<cmd.userId<<','<<cmd.message<<std::endl;
                         response_str = assemble_cmd(cmd);
-                    break;
+                    }
                 }
                 con_list::iterator it;
                 for (it = m_connections.begin(); it != m_connections.end(); ++it) {
