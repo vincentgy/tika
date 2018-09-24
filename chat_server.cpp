@@ -32,7 +32,7 @@ using websocketpp::lib::lock_guard;
 using websocketpp::lib::unique_lock;
 using websocketpp::lib::condition_variable;
 
-using websocketpp::frame;
+using websocketpp;
 /* on_open insert connection_hdl into channel
  * on_close remove connection_hdl from channel
  * on_message queue send to all channels
@@ -347,12 +347,12 @@ public:
         }
     }
 protected:
-    void sendToRoom(uint32_t chat_id, const std::string& str, opcode::value mOpcode = opcode::value::TEXT) {
+    void sendToRoom(uint32_t chat_id, const std::string& str, websocketpp::frame::opcode::value mOpcode = websocketpp::frame::opcode::value::TEXT) {
         for (con_list::iterator it = m_roomConns[chat_id].begin(); it != m_roomConns[chat_id].end(); ++it) {
             m_server.send(*it, str, mOpcode);
         }
     }
-    void sendToUser(uint32_t user_id, const std::string& str, opcode::value mOpcode = opcode::value::TEXT) {
+    void sendToUser(uint32_t user_id, const std::string& str, websocketpp::frame::opcode::value mOpcode = websocketpp::frame::opcode::value::TEXT) {
         for (con_list::iterator it = m_userConns[user_id].begin(); it != m_userConns[user_id].end(); ++it) {
             m_server.send(*it, str, mOpcode);
         }
