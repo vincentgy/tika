@@ -32,7 +32,6 @@ using websocketpp::lib::lock_guard;
 using websocketpp::lib::unique_lock;
 using websocketpp::lib::condition_variable;
 
-using websocketpp;
 /* on_open insert connection_hdl into channel
  * on_close remove connection_hdl from channel
  * on_message queue send to all channels
