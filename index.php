@@ -382,6 +382,20 @@ if(isset($req['a'])) {
                 $response['ret'] = 1;
             }
         break;
+        case 'gue':// get use attributes
+            $u = $user_id;
+            if (isset($req['user_id']) === true) {
+                $u = $req['user_id'];
+            }
+            $r = USER::getuserbyid($link, $u);
+            if ($r !== false) {
+                $response['ret'] = 0;
+                $response['data'] = $r;
+            }
+            else {
+                $response['ret'] = 1;
+            }
+        break;
     default:
         $response['ret'] = -1;
    }
