@@ -32,11 +32,10 @@ class WATCHLIST
     static function addwatch($link, $userid, $positionid)
     {
         $r = false;
-        $sql = "INSERT INTO watchlist (user_id, position_id, timestamp) VALUES (?,?,UNIX_TIMESTAMP())";
-
-        if (APPLICATION::checkapplication($userid, $positionid) === true) {
+        if (WATCHLIST::checkexisted($userid, $positionid) === true) {
             return $r;
         }
+        $sql = "INSERT INTO watchlist (user_id, position_id, timestamp) VALUES (?,?,UNIX_TIMESTAMP())";
 
         if($stmt = mysqli_prepare($link, $sql)) {
             mysqli_stmt_bind_param($stmt, "ii", $userid, $positionid);
