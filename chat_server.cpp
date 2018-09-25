@@ -300,7 +300,7 @@ public:
                             std::string myid_str;
                             myid_str += ((char)OPCODE::MYUSERID);
                             myid_str += pack32le(user_id);
-                            m_server.send(a.hdl, response_str,  a.msg->get_opcode());
+                            m_server.send(a.hdl, myid_str,  a.msg->get_opcode());
                             m_userConns[user_id].insert(a.hdl);
                             std::cout<<"CLIENTID:"<<user_id<<','<<std::endl;
                             cmd.opcode = OPCODE::CHATLIST;
