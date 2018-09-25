@@ -297,7 +297,8 @@ public:
                             if (m_userConns.find(user_id) == m_userConns.end()) {
                                 m_userConns[user_id] = con_list();
                             }
-                            std::string myid_str((char)OPCODE::MYUSERID);
+                            std::string myid_str;
+                            myid_str += ((char)OPCODE::MYUSERID);
                             myid_str += pack32le(user_id);
                             m_server.send(a.hdl, response_str,  a.msg->get_opcode());
                             m_userConns[user_id].insert(a.hdl);
