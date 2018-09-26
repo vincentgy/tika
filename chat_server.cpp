@@ -149,8 +149,9 @@ void parse_cmd(const std::string& cmdq, command& r) {
     }
     else if (OPCODE::NEWROOM == opcode) {
         len = unpack16le(cmdq.substr(1, 2));
+        r.userId = unpack32le(cmdq.substr(3, 4));
         for (int ui = 0; ui < len; ui++) {
-            r.userList.push_back(unpack32le(cmdq.substr(3 + (ui * 4), 4)));
+            r.userList.push_back(unpack32le(cmdq.substr(7 + (ui * 4), 4)));
         }
     }
 }
@@ -346,7 +347,7 @@ public:
                         sendToRoom(cmd.chatId, response_str, a.msg->get_opcode());
                     }
                     else if(OPCODE::NEWROOM == cmd.opcode) {
-                        uint32_t cId = createchat(cmd.userList);
+                        uint32_t cId = createchat(cmd.userId, cmd.userList);
                         cmd.chatId = cId;
                         response_str = assemble_cmd(cmd);
                         for (int i = 0; i < cmd.userList.size(); i++) {
@@ -383,10 +384,11 @@ protected:
         }
         return true;
     }
-    uint32_t createchat(const std::vector<uint32_t>& users) {
+    uint32_t createchat(uint32_t user_id, const std::vector<uint32_t>& users) {
         int state;
         uint32_t newId = 0;
-        std::string sql = std::string("INSERT INTO chats (created_at) VALUES (UNIX_TIMESTAMP())");
+        std::string sql = std::string("INSERT INTO chats (user_id, created_at) VALUES (" +
+                            std::to_string(user_id) + std::string(",") + std::string("UNIX_TIMESTAMP())");
         std::cout<<"sql:"<<sql<<std::endl;
         if (m_connect) {
             state = mysql_query(m_connect, sql.c_str());
