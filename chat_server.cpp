@@ -148,8 +148,8 @@ void parse_cmd(const std::string& cmdq, command& r) {
         r.message = cmdq.substr(11, len);
     }
     else if (OPCODE::NEWROOM == opcode) {
-        len = unpack16le(cmdq.substr(1, 2));
-        r.userId = unpack32le(cmdq.substr(3, 4));
+        r.userId = unpack32le(cmdq.substr(1, 4));
+        len = unpack16le(cmdq.substr(5, 2));
         for (int ui = 0; ui < len; ui++) {
             r.userList.push_back(unpack32le(cmdq.substr(7 + (ui * 4), 4)));
         }
