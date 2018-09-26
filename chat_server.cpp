@@ -387,7 +387,7 @@ protected:
     uint32_t createchat(uint32_t user_id, const std::vector<uint32_t>& users) {
         int state;
         uint32_t newId = 0;
-        std::string sql = std::string("INSERT INTO chats (user_id, created_at) VALUES (" +
+        std::string sql = std::string("INSERT INTO chats (user_id, created_at) VALUES (") +
                             std::to_string(user_id) + std::string(",") + std::string("UNIX_TIMESTAMP())");
         std::cout<<"sql:"<<sql<<std::endl;
         if (m_connect) {
