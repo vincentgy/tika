@@ -393,7 +393,7 @@ protected:
             MYSQL_RES *result;
             MYSQL_ROW row;
             sql = std::string("SELECT chat_id FROM chat_users WHERE user_id = ") + std::to_string(users[0]) +
-                  std::to_string(" AND chat_id IN (SELECT chat_id FROM chat_users WHERE user_id = ") + std::to_string(users[1]) + std::string(")");
+                  std::string(" AND chat_id IN (SELECT chat_id FROM chat_users WHERE user_id = ") + std::to_string(users[1]) + std::string(")");
             std::cout<<"sql:"<<sql<<std::endl;
             if (m_connect) {
                 state = mysql_query(m_connect, sql.c_str());
