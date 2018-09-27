@@ -387,7 +387,40 @@ protected:
     uint32_t createchat(uint32_t user_id, const std::vector<uint32_t>& users) {
         int state;
         uint32_t newId = 0;
-        std::string sql = std::string("INSERT INTO chats (user_id, created_at) VALUES (") +
+        std::string sql;
+        // 1on1 chat
+        if (users.size() == 2) {
+            MYSQL_RES *result;
+            MYSQL_ROW row;
+            sql = std::string("SELECT chat_id FROM chat_users WHERE user_id = ") + std::to_string(users[0]) +
+                  std::to_string(" AND chat_id IN (SELECT chat_id FROM chat_users WHERE user_id = ") + std::to_string(users[1]) + std::string(")");
+            std::cout<<"sql:"<<sql<<std::endl;
+            if (m_connect) {
+                state = mysql_query(m_connect, sql.c_str());
+                if( state != 0 ) {
+                    printf(mysql_error(m_connect));
+                    return false;
+                }
+                /* must call mysql_store_result() before we can issue any
+                 * other query calls
+                 */  
+                result = mysql_store_result(m_connect);
+                if (mysql_num_rows(result) == 1) {
+                    row = mysql_fetch_row(result)
+                    if (row != NULL) {
+                        newId = atoi(row[0]);
+                    }
+                }
+                mysql_free_result(result);
+                /* free the result set */
+                printf("Done.\n");
+                /* chat already exits */
+                if (newId > 0) {
+                    return newId;
+                }
+            }     
+        }
+        sql = std::string("INSERT INTO chats (user_id, created_at) VALUES (") +
                             std::to_string(user_id) + std::string(",") + std::string("UNIX_TIMESTAMP())");
         std::cout<<"sql:"<<sql<<std::endl;
         if (m_connect) {
