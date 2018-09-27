@@ -406,7 +406,7 @@ protected:
                  */  
                 result = mysql_store_result(m_connect);
                 if (mysql_num_rows(result) == 1) {
-                    row = mysql_fetch_row(result)
+                    row = mysql_fetch_row(result);
                     if (row != NULL) {
                         newId = atoi(row[0]);
                     }
