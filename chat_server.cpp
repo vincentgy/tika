@@ -370,7 +370,7 @@ protected:
     void sendToRoom(uint32_t chat_id, const std::string& str, websocketpp::frame::opcode::value mOpcode = websocketpp::frame::opcode::value::TEXT) {
         std::cout<<"SEND to room " << chat_id<<std::endl;
         for (con_list::iterator it = m_roomConns[chat_id].begin(); it != m_roomConns[chat_id].end(); ++it) {
-            std::cout<<"SEND to user " << (long)*it<<std::endl;
+            std::cout<<"SEND to user "<<std::endl;
             m_server.send(*it, str, mOpcode);
         }
     }
