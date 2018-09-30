@@ -344,6 +344,14 @@ public:
                     else if(OPCODE::NEWMSG == cmd.opcode) {
                         std::cout<<"NEWMSG:"<<cmd.chatId<<','<<cmd.userId<<','<<cmd.message<<std::endl;
                         response_str = assemble_cmd(cmd);
+                        for(int i=0;i<response_str.length();i++) {
+                            std::cout<<std::hex<<(unint32_t)response_str[i];
+                        }
+                        std::cout<<std;:endl;
+                        for(int j=0;j<a.msg->get_payload().length();j++) {
+                            std::cout<<std::hex<<(unint32_t)a.msg->get_payload()[j];
+                        }
+                        std::cout<<std;:endl;
                         sendToRoom(cmd.chatId, a.msg);
                     }
                     else if(OPCODE::NEWROOM == cmd.opcode) {
