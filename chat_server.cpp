@@ -145,8 +145,7 @@ void parse_cmd(const std::string& cmdq, command& r) {
         r.chatId = unpack32le(cmdq.substr(1, 4));
         r.userId = unpack32le(cmdq.substr(5, 4));
         len = unpack16le(cmdq.substr(9, 2));
-        for (int i = 11; i< cmdq.length();i++) {
-            r.message += cmdq[i];
+        r.message = cmdq.substr(11, len);
         }
     }
     else if (OPCODE::NEWROOM == opcode) {
@@ -170,9 +169,7 @@ std::string assemble_cmd(const command& cmd) {
         buf += pack32le(cmd.chatId);
         buf += pack32le(cmd.userId);
         buf += pack16le(cmd.message.length());
-        for (int i=0; i<cmd.message.length();i++) {
-            buf += cmd.message[i];
-        }
+        buf += cmd.message;
     }
     else if (OPCODE::CHATLIST ==  cmd.opcode) {
         buf += pack16le(cmd.chatList.size());
