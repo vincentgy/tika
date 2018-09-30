@@ -170,7 +170,9 @@ std::string assemble_cmd(const command& cmd) {
         buf += pack32le(cmd.chatId);
         buf += pack32le(cmd.userId);
         buf += pack16le(cmd.message.length());
-        buf += cmd.message;
+        for (int i=0; i<cmd.message.length();i++) {
+            buf += cmd.message[i];
+        }
     }
     else if (OPCODE::CHATLIST ==  cmd.opcode) {
         buf += pack16le(cmd.chatList.size());
