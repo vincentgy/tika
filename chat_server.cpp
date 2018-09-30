@@ -145,7 +145,9 @@ void parse_cmd(const std::string& cmdq, command& r) {
         r.chatId = unpack32le(cmdq.substr(1, 4));
         r.userId = unpack32le(cmdq.substr(5, 4));
         len = unpack16le(cmdq.substr(9, 2));
-        r.message = cmdq.substr(11);
+        for (int i = 11; i< cmdq.length();i++) {
+            r.message += cmdq[i];
+        }
     }
     else if (OPCODE::NEWROOM == opcode) {
         r.userId = unpack32le(cmdq.substr(1, 4));
