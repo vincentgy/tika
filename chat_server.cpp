@@ -146,7 +146,6 @@ void parse_cmd(const std::string& cmdq, command& r) {
         r.userId = unpack32le(cmdq.substr(5, 4));
         len = unpack16le(cmdq.substr(9, 2));
         r.message = cmdq.substr(11, len);
-        }
     }
     else if (OPCODE::NEWROOM == opcode) {
         r.userId = unpack32le(cmdq.substr(1, 4));
