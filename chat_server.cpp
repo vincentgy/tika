@@ -344,7 +344,7 @@ public:
                     else if(OPCODE::NEWMSG == cmd.opcode) {
                         std::cout<<"NEWMSG:"<<cmd.chatId<<','<<cmd.userId<<','<<cmd.message<<std::endl;
                         response_str = assemble_cmd(cmd);
-                        sendToRoom(cmd.chatId, response_str, a.msg->get_opcode());
+                        sendToRoom(cmd.chatId, a.msg);
                     }
                     else if(OPCODE::NEWROOM == cmd.opcode) {
                         uint32_t cId = createchat(cmd.userId, cmd.userList);
@@ -360,8 +360,17 @@ public:
         }
     }
 protected:
-    void sendToRoom(uint32_t chat_id, const std::string& str, websocketpp::frame::opcode::value mOpcode = websocketpp::frame::opcode::value::TEXT) {
+    void sendToRoom(uint32_t chat_id, const server::message_ptr& str) {
+        std::cout<<"SEND to room " << chat_id<<std::endl;
         for (con_list::iterator it = m_roomConns[chat_id].begin(); it != m_roomConns[chat_id].end(); ++it) {
+            std::cout<<"SEND to user"<<std::endl;
+            m_server.send(*it, str);
+        }
+    }
+    void sendToRoom(uint32_t chat_id, const std::string& str, websocketpp::frame::opcode::value mOpcode = websocketpp::frame::opcode::value::TEXT) {
+        std::cout<<"SEND to room " << chat_id<<std::endl;
+        for (con_list::iterator it = m_roomConns[chat_id].begin(); it != m_roomConns[chat_id].end(); ++it) {
+            std::cout<<"SEND to user " << (long)*it<<std::endl;
             m_server.send(*it, str, mOpcode);
         }
     }
