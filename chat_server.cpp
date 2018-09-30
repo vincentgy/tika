@@ -352,7 +352,9 @@ public:
                             std::cout<<std::hex<<(uint32_t)a.msg->get_payload()[j];
                         }
                         std::cout<<std::endl;
-                        sendToRoom(cmd.chatId, a.msg);
+                        server::message_ptr p(a.msg);
+                        p->set_payload(response_str);
+                        sendToRoom(cmd.chatId, p);
                     }
                     else if(OPCODE::NEWROOM == cmd.opcode) {
                         uint32_t cId = createchat(cmd.userId, cmd.userList);
