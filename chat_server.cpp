@@ -18,7 +18,6 @@
 #define PASSWORD "r00t"
 #define DATABASE "tikadb"
 
-
 typedef websocketpp::server<websocketpp::config::asio> server;
 
 using websocketpp::connection_hdl;
@@ -64,6 +63,8 @@ struct command
     uint32_t userId;
     uint64_t messageId;
     uint32_t count;
+    uint32_t timestamp;
+    uint32_t updated;
     std::string token;
     std::string message;
     std::vector<uint32_t> userList;
@@ -80,6 +81,26 @@ struct action {
     server::message_ptr msg;
 };
 
+std::string pack64le (uint64_t x) {
+    std::string r;
+
+    for (int i = 8; i--;) {
+        r += ((char)(x & 255));
+        x >>= 8;
+    }
+
+    return r;
+}
+
+uint64_t unpack64le(const std::string& x) {
+    uint64_t r = 0;
+
+    for (int i = 8; i--;) {
+        r = ((r << 8) >> 0) + (uint64_t)(x[i]);
+    }
+
+    return r;
+}
 
 std::string pack32le (uint32_t x) {
     std::string r;
@@ -113,11 +134,11 @@ std::string pack16le (uint16_t x) {
     return r;
 }
 
-uint32_t unpack16le(const std::string& x) {
-    uint32_t r = 0;
+uint16_t unpack16le(const std::string& x) {
+    uint16_t r = 0;
 
     for (int i = 2; i--;) {
-        r = ((r << 8) >> 0) + (uint32_t)(x[i]);
+        r = ((r << 8) >> 0) + (uint16_t)(x[i]);
     }
 
     return r;
@@ -167,6 +188,7 @@ std::string assemble_cmd(const command& cmd) {
     else if(OPCODE::NEWMSG == cmd.opcode || OPCODE::OLDMSG == cmd.opcode) {
         buf += pack32le(cmd.chatId);
         buf += pack32le(cmd.userId);
+        buf += pack64le(cmd.messageId);
         buf += pack16le(cmd.message.length());
         buf += cmd.message;
     }
@@ -182,23 +204,24 @@ std::string assemble_cmd(const command& cmd) {
 
     return buf;
 }
-class broadcast_server {
+class chatServer {
 public:
-    broadcast_server() {
+    chatServer() {
         // Initialize Asio Transport
         m_server.init_asio();
 
         // Register handler callbacks
-        m_server.set_open_handler(bind(&broadcast_server::on_open,this,::_1));
-        m_server.set_close_handler(bind(&broadcast_server::on_close,this,::_1));
-        m_server.set_message_handler(bind(&broadcast_server::on_message,this,::_1,::_2));
+        m_server.set_open_handler(bind(&chatServer::on_open,this,::_1));
+        m_server.set_close_handler(bind(&chatServer::on_close,this,::_1));
+        m_server.set_message_handler(bind(&chatServer::on_message,this,::_1,::_2));
 
         m_connect = mysql_init(NULL);
         if (!m_connect)
         {
             std::cout << "Mysql Initialization Failed" << std::endl;
         }
-
+        mysql_options(m_connect, MYSQL_SET_CHARSET_NAME, "utf8");
+        mysql_options(m_connect, MYSQL_INIT_COMMAND, "SET NAMES utf8");
         m_connect = mysql_real_connect(m_connect, SERVER, USER, PASSWORD, DATABASE, 0, NULL, 0);
 
         if (m_connect)
@@ -210,7 +233,7 @@ public:
             std::cout << "Connection Failed\n" << std::endl;
         }
     }
-    ~broadcast_server() {
+    ~chatServer() {
         if (m_connect) {
             /* close the connection */
             mysql_close(m_connect);
@@ -343,13 +366,11 @@ public:
                     }
                     else if(OPCODE::NEWMSG == cmd.opcode) {
                         std::cout<<"NEWMSG:"<<cmd.chatId<<','<<cmd.userId<<','<<cmd.message<<std::endl;
+                        cmd.messageId = addchatmessage(cmd.chatId, cmd.userId, cmd.message);
+                        std::cout<<"message id"<<cmd.messageId<<std::endl;
                         response_str = assemble_cmd(cmd);
                         for(int i=0;i<response_str.length();i++) {
                             std::cout<<std::hex<<(uint32_t)response_str[i];
-                        }
-                        std::cout<<std::endl;
-                        for(int j=0;j<a.msg->get_payload().length();j++) {
-                            std::cout<<std::hex<<(uint32_t)a.msg->get_payload()[j];
                         }
                         std::cout<<std::endl;
                         server::message_ptr p(a.msg);
@@ -389,20 +410,70 @@ protected:
             m_server.send(*it, str, mOpcode);
         }
     }
-    bool addchatuser (uint32_t chat_id, uint32_t user_id) {
-        int state;
-        std::string sql = std::string("INSERT INTO chat_users (chat_id, user_id) VALUES (") +
-                          std::to_string(chat_id) + std::string(",") + std::to_string(user_id) + std::string(")");
+
+    uint64_t addchatmessage(uint32_t chat_id, uint32_t user_id, const std::string& message) {
+        MYSQL_STMT *stmt;
+        MYSQL_BIND bind[3];
+        uint64_t newId = 0;
+        std::string sql = std::string("INSERT INTO chat_messages (chat_id, user_id, message, timestamp) VALUES (?,?,?, UNIX_TIMESTAMP())");
         std::cout<<"sql:"<<sql<<std::endl;
         if (m_connect) {
-            state = mysql_query(m_connect, sql.c_str());
-            if( state != 0 ) {
+            stmt = mysql_stmt_init(m_connect);
+            if(stmt == NULL) {
                 printf(mysql_error(m_connect));
                 return false;
             }
+            mysql_stmt_prepare(stmt, sql.c_str(), sql.length());
+            // bind parameters set.
+            memset(bind, 0, sizeof(bind));
+            bind[0].buffer_type= MYSQL_TYPE_LONG;
+            bind[0].buffer= (char*)&chat_id;
+            bind[1].buffer_type= MYSQL_TYPE_LONG;
+            bind[1].buffer= (char*)&user_id;
+            bind[2].buffer_type= MYSQL_TYPE_STRING;
+            bind[2].buffer= (void*)message.c_str();
+            bind[2].buffer_length= message.length();
+
+            mysql_stmt_bind_param(stmt, bind);
+            if (!mysql_stmt_execute(stmt)) {
+                newId = (uint64_t)mysql_insert_id(m_connect);;
+            }
+            else {
+                printf(mysql_error(m_connect));
+            }
+            mysql_stmt_close(stmt);
         }
-        return true;
+        return newId;
     }
+
+    bool addchatuser (uint32_t chat_id, uint32_t user_id) {
+        MYSQL_STMT *stmt;
+        MYSQL_BIND bind[2];
+        bool result = false;
+        std::string sql = std::string("INSERT INTO chat_users (chat_id, user_id) VALUES (?, ?)");
+        std::cout<<"sql:"<<sql<<std::endl;
+        if (m_connect) {
+            stmt = mysql_stmt_init(m_connect);
+            if(stmt == NULL) {
+                printf(mysql_error(m_connect));
+                return false;
+            }
+            mysql_stmt_prepare(stmt, sql.c_str(), sql.length());
+            // bind parameters set.
+            memset(bind, 0, sizeof(bind));
+            bind[0].buffer_type= MYSQL_TYPE_LONG;
+            bind[0].buffer= (char*)&chat_id;
+            bind[1].buffer_type= MYSQL_TYPE_LONG;
+            bind[1].buffer= (char*)&user_id;
+            mysql_stmt_bind_param(stmt, bind);
+            if (!mysql_stmt_execute(stmt)) {
+                result = true;
+            }
+            mysql_stmt_close(stmt);
+        }
+        return result;
+    }
+
     uint32_t createchat(uint32_t user_id, const std::vector<uint32_t>& users) {
         int state;
         uint32_t newId = 0;
@@ -457,33 +528,182 @@ protected:
         }
         return newId;
     }
+
+    bool setlastseen (uint32_t chat_id, uint32_t user_id, uint64_t message_id) {
+        MYSQL_STMT *stmt;
+        MYSQL_BIND bind[3];
+        bool result = false;
+        std::string sql = std::string("UPDATE chat_users SET last_seen=? WHERE chat_id=? AND user_id=?");
+        std::cout<<"sql:"<<sql<<std::endl;
+        if (m_connect) {
+            stmt = mysql_stmt_init(m_connect);
+            if(stmt == NULL) {
+                printf(mysql_error(m_connect));
+                return false;
+            }
+            mysql_stmt_prepare(stmt, sql.c_str(), sql.length());
+            // bind parameters set.
+            memset(bind, 0, sizeof(bind));
+            bind[0].buffer_type= MYSQL_TYPE_LONG;
+            bind[0].buffer= (char*)&chat_id;
+            bind[1].buffer_type= MYSQL_TYPE_LONG;
+            bind[1].buffer= (char*)&user_id;
+            bind[2].buffer_type= MYSQL_TYPE_LONGLONG;
+            bind[2].buffer= (char*)&message_id;
+            mysql_stmt_bind_param(stmt, bind);
+            if (!mysql_stmt_execute(stmt)) {
+                result = true;
+            }
+            mysql_stmt_close(stmt);
+        }
+        return result;
+    }
+
+    uint64_t getlastseen(uint32_t chat_id, uint32_t user_id) {
+        MYSQL_RES *result;
+        MYSQL_ROW row;
+        MYSQL_STMT *stmt;
+        MYSQL_BIND bind[2];
+        MYSQL_BIND bResult[1];
+        uint64_t init_data = 0;
+
+        std::string sql = std::string("SELECT last_seen FROM chat_users WHERE chat_id = ? AND user_id = ?");
+        std::cout<<"sql:"<<sql<<std::endl;
+        if (m_connect) {
+            stmt = mysql_stmt_init(m_connect);
+            if(stmt == NULL) {
+                printf(mysql_error(m_connect));
+                return init_data;
+            }
+            mysql_stmt_prepare(stmt, sql.c_str(), sql.length());
+            // bind parameters set.
+            memset(bind, 0, sizeof(bind));
+            bind[0].buffer_type= MYSQL_TYPE_LONG;
+            bind[0].buffer= (char*)&chat_id;
+            bind[1].buffer_type= MYSQL_TYPE_LONG;
+            bind[1].buffer= (char*)&user_id;
+            mysql_stmt_bind_param(stmt, bind);
+
+            // bind result set.
+            memset(bResult, 0, sizeof(bResult));
+            bResult[0].buffer_type= MYSQL_TYPE_LONGLONG;
+            bResult[0].buffer= (char *)&init_data;
+            mysql_stmt_bind_result(stmt, bResult);
+            /* must call mysql_store_result() before we can issue any
+             * other query calls
+             */
+            mysql_stmt_execute(stmt);
+            mysql_stmt_store_result(stmt);
+
+            mysql_stmt_fetch(stmt);
+            mysql_stmt_close(stmt);
+            printf("Done.\n");
+        }
+        return init_data;
+    }
+
+    std::vector<command> getnewmessages(uint32_t chat_id, uint32_t user_id) {
+        MYSQL_RES *result;
+        MYSQL_ROW row;
+        MYSQL_STMT *stmt;
+        MYSQL_BIND bind[2];
+        MYSQL_BIND bResult[6];
+        uint64_t last_seen = this->getlastseen(chat_id, user_id);
+        std::vector<command> cmdList;
+
+        std::string sql = std::string("SELECT * FROM chat_messages WHERE chat_id = ? AND id > ? ORDER BY id ASC");
+        std::cout<<"sql:"<<sql<<std::endl;
+        if (m_connect) {
+            stmt = mysql_stmt_init(m_connect);
+            if(stmt == NULL) {
+                printf(mysql_error(m_connect));
+                return cmdList;
+            }
+            mysql_stmt_prepare(stmt, sql.c_str(), sql.length());
+            // bind parameters set.
+            memset(bind, 0, sizeof(bind));
+            bind[0].buffer_type= MYSQL_TYPE_LONG;
+            bind[0].buffer= (char*)&chat_id;
+            bind[1].buffer_type= MYSQL_TYPE_LONGLONG;
+            bind[1].buffer= (char*)&last_seen;
+            mysql_stmt_bind_param(stmt, bind);
+            command  result;
+            result.opcode = OPCODE::NEWMSG;
+            // bind result set.
+            char msgBuffer[65536] = {0};
+            unsigned long msgLength;
+            memset(bResult, 0, sizeof(bResult));
+            bResult[0].buffer_type= MYSQL_TYPE_LONGLONG;
+            bResult[0].buffer= (char *)&result.messageId;
+            bResult[1].buffer_type= MYSQL_TYPE_LONG;
+            bResult[1].buffer= (char *)&result.chatId;
+            bResult[2].buffer_type= MYSQL_TYPE_LONG;
+            bResult[2].buffer= (char *)&result.userId;
+            bResult[3].buffer_type= MYSQL_TYPE_STRING;
+            bResult[3].buffer = msgBuffer;
+            bResult[3].length = &msgLength;
+            bResult[4].buffer_type= MYSQL_TYPE_LONG;
+            bResult[4].buffer= (char *)&result.timestamp;
+            bResult[5].buffer_type= MYSQL_TYPE_LONG;
+            bResult[5].buffer= (char *)&result.updated;
+            mysql_stmt_bind_result(stmt, bResult);
+            /* must call mysql_store_result() before we can issue any
+             * other query calls
+             */
+            mysql_stmt_execute(stmt);
+            mysql_stmt_store_result(stmt);
+
+            while(!mysql_stmt_fetch(stmt)) {
+                result.message = std::string(msgBuffer, msgLength);
+                memset(msgBuffer, 0, sizeof(msgBuffer));
+                cmdList.push_back(result);
+            }
+
+            mysql_stmt_close(stmt);
+            printf("Done.\n");
+        }
+        return cmdList;
+    }
+
     std::vector<uint32_t> getparticipants(uint32_t chat_id) {
         MYSQL_RES *result;
         MYSQL_ROW row;
-        int state;
+        MYSQL_STMT *stmt;
+        MYSQL_BIND bind[1];
+        MYSQL_BIND bResult[1];
+        uint32_t init_data = chat_id;
         std::vector<uint32_t> userList;
-        std::string sql = std::string("SELECT user_id FROM chat_users WHERE chat_id = ") + std::to_string(chat_id);
+        std::string sql = std::string("SELECT user_id FROM chat_users WHERE chat_id = ?");
         std::cout<<"sql:"<<sql<<std::endl;
         if (m_connect) {
-            state = mysql_query(m_connect, sql.c_str());
-            if( state != 0 ) {
+            stmt = mysql_stmt_init(m_connect);
+            if(stmt == NULL) {
                 printf(mysql_error(m_connect));
                 return userList;
             }
+            mysql_stmt_prepare(stmt, sql.c_str(), sql.length());
+            // bind parameters set.
+            memset(bind, 0, sizeof(bind));
+            bind[0].buffer_type= MYSQL_TYPE_LONG;
+            bind[0].buffer= (char*)&init_data;
+            mysql_stmt_bind_param(stmt, bind);
+
+            // bind result set.
+            memset(bResult, 0, sizeof(bResult));
+            bResult[0].buffer_type= MYSQL_TYPE_LONG;
+            bResult[0].buffer= (char *)&init_data;
+            mysql_stmt_bind_result(stmt, bResult);
             /* must call mysql_store_result() before we can issue any
              * other query calls
-             */  
-            result = mysql_store_result(m_connect);
-            printf("Rows: %d\n", mysql_num_rows(result));
-            /* process each row in the result set */
-            while( ( row = mysql_fetch_row(result)) != NULL ) {
-                printf("id: %s, val: %s\n", 
-                       (row[0] ? row[0] : "NULL"), 
-                       (row[1] ? row[1] : "NULL"));
-                userList.push_back(atoi(row[0]));
+             */
+            mysql_stmt_execute(stmt);
+            mysql_stmt_store_result(stmt);
+
+            while(!mysql_stmt_fetch(stmt)) {
+                userList.push_back(init_data);
             }
-            /* free the result set */
-            mysql_free_result(result);
+
+            mysql_stmt_close(stmt);
             printf("Done.\n");
         }
         return userList;
@@ -571,10 +791,10 @@ private:
 
 int main() {
     try {
-    broadcast_server server_instance;
+    chatServer server_instance;
 
     // Start a thread to run the processing loop
-    thread t(bind(&broadcast_server::process_messages,&server_instance));
+    thread t(bind(&chatServer::process_messages,&server_instance));
 
     // Run the asio loop with the main thread
     server_instance.run(9527);
