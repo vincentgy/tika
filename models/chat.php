@@ -109,7 +109,7 @@ class CHAT
             $chatInfo['id'] = $chatList[$x];
             $userListInfo = array();
             $uLength = count($userList);
-            for ($y = 0; $y <= $uLength; $y++) {
+            for ($y = 0; $y < $uLength; $y++) {
                 $uInfo = USER::getuserbyid($link, $userList[$y]);
                 $uInfo['id'] = $userList[$y];
                 $userListInfo[] = $uInfo;
