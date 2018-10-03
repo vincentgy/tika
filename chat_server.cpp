@@ -371,10 +371,16 @@ public:
                     else if (OPCODE::JOIN == cmd.opcode) {
                         std::cout<<"received JOIN"<<std::endl;
                         std::vector<uint32_t> userList = getparticipants(cmd.chatId);
+                        // add connection to room's connection set.
                         if (m_roomConns.find(cmd.chatId) == m_roomConns.end()) {
                             m_roomConns[cmd.chatId] = con_list();
                         }
                         m_roomConns[cmd.chatId].insert(a.hdl);
+                        // add connection to user's connection set.
+                        if (m_userConns.find(cmd.userId) == m_userConns.end()) {
+                            m_userConns[cmd.userId] = con_list();
+                        }
+                        m_userConns[cmd.userId].insert(a.hdl);
                         for (int index = 0; index < userList.size();index++) {
                             std::cout<< 'JOINED:'<<userList[index]<<std::endl;
                             std::string str;
