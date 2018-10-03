@@ -17,7 +17,7 @@
 #define USER "root"
 #define PASSWORD "r00t"
 #define DATABASE "tikadb"
-
+#define MAX_SIZE  4096
 typedef websocketpp::server<websocketpp::config::asio> server;
 
 using websocketpp::connection_hdl;
@@ -175,6 +175,11 @@ void parse_cmd(const std::string& cmdq, command& r) {
             r.userList.push_back(unpack32le(cmdq.substr(7 + (ui * 4), 4)));
         }
     }
+    else if (OPCODE::LASTSEEN == opcode) {
+        r.chatId = unpack32le(cmdq.substr(1, 4));
+        r.userId = unpack32le(cmdq.substr(5, 4));
+        r.messageId = unpack64le(cmdq.substr(9, 8));
+    }
 }
 
 std::string assemble_cmd(const command& cmd) {
@@ -201,7 +206,11 @@ std::string assemble_cmd(const command& cmd) {
     else if (OPCODE::NEWROOM == cmd.opcode) {
         buf += cmd.chatId;
     }
-
+    else if (OPCODE::LASTSEEN == cmd.opcode) {
+        buf += pack32le(cmd.chatId);
+        buf += pack32le(cmd.userId);
+        buf += pack64le(cmd.messageId);
+    }
     return buf;
 }
 class chatServer {
@@ -328,15 +337,21 @@ public:
                             m_userConns[user_id].insert(a.hdl);
                             std::cout<<"CLIENTID:"<<user_id<<','<<std::endl;
                             cmd.opcode = OPCODE::CHATLIST;
+                            std::vector<command> newMessages;
                             cmd.chatList = getchatlist(user_id);
                             response_str = assemble_cmd(cmd);
                             m_server.send(a.hdl, response_str,  a.msg->get_opcode());
+                            //std::vector<command> newMessages;
                             for (int cIndex = 0; cIndex < cmd.chatList.size(); cIndex++) {
                                 if (m_roomConns.find(cmd.chatList[cIndex]) == m_roomConns.end()) {
                                     m_roomConns[cmd.chatList[cIndex]] = con_list();
                                 }
                                 m_roomConns[cmd.chatList[cIndex]].insert(a.hdl);
                                 std::vector<uint32_t> userList = getparticipants(cmd.chatList[cIndex]);
+                                std::vector<command> roomNewMessages = getnewmessages(cmd.chatList[cIndex], user_id);
+                                if (roomNewMessages.size() > 0) {
+                                    newMessages.insert(newMessages.end(), roomNewMessages.begin(), roomNewMessages.end());
+                                }
                                 for (int index = 0; index < userList.size();index++) {
                                     std::cout<< 'JOINED:'<<userList[index]<<std::endl;
                                     std::string str;
@@ -345,6 +360,11 @@ public:
                                     str += pack32le(userList[index]);
                                     m_server.send(a.hdl, str,  a.msg->get_opcode());
                                 }
+                            }
+                            // flush all new messages;
+                            for (int nIndex = 0; nIndex < newMessages.size(); nIndex++) {
+                                response_str = assemble_cmd(newMessages[nIndex]);
+                                m_server.send(a.hdl, response_str,  a.msg->get_opcode());
                             }
                         }
                     }
@@ -367,6 +387,7 @@ public:
                     else if(OPCODE::NEWMSG == cmd.opcode) {
                         std::cout<<"NEWMSG:"<<cmd.chatId<<','<<cmd.userId<<','<<cmd.message<<std::endl;
                         cmd.messageId = addchatmessage(cmd.chatId, cmd.userId, cmd.message);
+                        setlastseen(cmd.chatId, cmd.userId, cmd.messageId);
                         std::cout<<"message id"<<cmd.messageId<<std::endl;
                         response_str = assemble_cmd(cmd);
                         for(int i=0;i<response_str.length();i++) {
@@ -384,6 +405,11 @@ public:
                         for (int i = 0; i < cmd.userList.size(); i++) {
                             sendToUser(cmd.userList[i], response_str, a.msg->get_opcode());
                         }
+                    }
+                    else if(OPCODE::LASTSEEN == cmd.opcode) {
+                        setlastseen(cmd.chatId, cmd.userId, cmd.messageId);
+                        response_str = assemble_cmd(cmd);
+                        sendToUser(cmd.userId, response_str, a.msg->get_opcode());
                     }
             } else {
                 // undefined.
@@ -544,12 +570,12 @@ protected:
             mysql_stmt_prepare(stmt, sql.c_str(), sql.length());
             // bind parameters set.
             memset(bind, 0, sizeof(bind));
-            bind[0].buffer_type= MYSQL_TYPE_LONG;
-            bind[0].buffer= (char*)&chat_id;
+            bind[0].buffer_type= MYSQL_TYPE_LONGLONG;
+            bind[0].buffer= (char*)&message_id;
             bind[1].buffer_type= MYSQL_TYPE_LONG;
-            bind[1].buffer= (char*)&user_id;
-            bind[2].buffer_type= MYSQL_TYPE_LONGLONG;
-            bind[2].buffer= (char*)&message_id;
+            bind[1].buffer= (char*)&chat_id;
+            bind[2].buffer_type= MYSQL_TYPE_LONG;
+            bind[2].buffer= (char*)&user_id;
             mysql_stmt_bind_param(stmt, bind);
             if (!mysql_stmt_execute(stmt)) {
                 result = true;
@@ -593,8 +619,7 @@ protected:
              * other query calls
              */
             mysql_stmt_execute(stmt);
-            mysql_stmt_store_result(stmt);
-
+\
             mysql_stmt_fetch(stmt);
             mysql_stmt_close(stmt);
             printf("Done.\n");
@@ -608,9 +633,10 @@ protected:
         MYSQL_STMT *stmt;
         MYSQL_BIND bind[2];
         MYSQL_BIND bResult[6];
-        uint64_t last_seen = this->getlastseen(chat_id, user_id);
+        bool ready = false;
+        uint64_t last_seen = getlastseen(chat_id, user_id);
         std::vector<command> cmdList;
-
+        std::cout<<"getnewmessages:"<<chat_id<<" "<<last_seen<<std::endl;
         std::string sql = std::string("SELECT * FROM chat_messages WHERE chat_id = ? AND id > ? ORDER BY id ASC");
         std::cout<<"sql:"<<sql<<std::endl;
         if (m_connect) {
@@ -630,7 +656,7 @@ protected:
             command  result;
             result.opcode = OPCODE::NEWMSG;
             // bind result set.
-            char msgBuffer[65536] = {0};
+            char *msgBuffer = new char[MAX_SIZE];
             unsigned long msgLength;
             memset(bResult, 0, sizeof(bResult));
             bResult[0].buffer_type= MYSQL_TYPE_LONGLONG;
@@ -641,24 +667,35 @@ protected:
             bResult[2].buffer= (char *)&result.userId;
             bResult[3].buffer_type= MYSQL_TYPE_STRING;
             bResult[3].buffer = msgBuffer;
+            bResult[3].buffer_length = MAX_SIZE;
             bResult[3].length = &msgLength;
             bResult[4].buffer_type= MYSQL_TYPE_LONG;
             bResult[4].buffer= (char *)&result.timestamp;
             bResult[5].buffer_type= MYSQL_TYPE_LONG;
             bResult[5].buffer= (char *)&result.updated;
-            mysql_stmt_bind_result(stmt, bResult);
-            /* must call mysql_store_result() before we can issue any
-             * other query calls
-             */
-            mysql_stmt_execute(stmt);
-            mysql_stmt_store_result(stmt);
-
-            while(!mysql_stmt_fetch(stmt)) {
+            /* Bind the result buffers */
+            if (mysql_stmt_bind_result(stmt, bResult)) {
+                fprintf(stderr, " mysql_stmt_bind_result() failed\n");
+                fprintf(stderr, " %s\n", mysql_stmt_error(stmt));
+            }
+            else {
+                mysql_stmt_execute(stmt);
+                /* Now buffer all results to client (optional step)*/
+                if (mysql_stmt_store_result(stmt)) {
+                  fprintf(stderr, " mysql_stmt_store_result() failed\n");
+                  fprintf(stderr, " %s\n", mysql_stmt_error(stmt));
+                }
+                else {
+                    ready = true;
+                }
+            }
+            while(ready && !mysql_stmt_fetch(stmt)) {
                 result.message = std::string(msgBuffer, msgLength);
                 memset(msgBuffer, 0, sizeof(msgBuffer));
+                std::cout<<"new message:"<<result.messageId<<std::endl;
                 cmdList.push_back(result);
             }
-
+            delete msgBuffer;
             mysql_stmt_close(stmt);
             printf("Done.\n");
         }
