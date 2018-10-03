@@ -5,6 +5,7 @@ include_once "./models/job.php";
 include_once "./models/session.php";
 include_once "./models/profile.php";
 include_once "./models/watchlist.php";
+include_once "./models/chat.php";
 require_once __DIR__ ."/config.php";
 
 $response = array();
@@ -388,6 +389,16 @@ if(isset($req['a'])) {
                 $u = $req['user_id'];
             }
             $r = USER::getuserbyid($link, $u);
+            if ($r !== false) {
+                $response['ret'] = 0;
+                $response['data'] = $r;
+            }
+            else {
+                $response['ret'] = 1;
+            }
+        break;
+        case 'gcl':// get use attributes
+            $r = CHAT::getchatlistinfo($link, $user_id);
             if ($r !== false) {
                 $response['ret'] = 0;
                 $response['data'] = $r;

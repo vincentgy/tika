@@ -1,4 +1,5 @@
 <?php
+include_once("user.php");
 
 class CHAT
 {
@@ -94,6 +95,30 @@ class CHAT
             $r = false;
         }
 
+        return $r;
+    }
+
+    static function getchatlistinfo($link, $user_id) {
+        $r = array();
+        $chatList = CHAT::getchatlist($link, $user_id);
+        $length = count($chatList);
+        $chatListInfo = array();
+        for ($x = 0; $x < $length; $x++) {
+            $chatInfo = array();
+            $userList = CHAT::getparticipants($link, $chatList[$x]);
+            $chatInfo['id'] = $chatList[$x];
+            $userListInfo = array();
+            $uLength = count($userList);
+            for ($y = 0; $y <= $uLength; $y++) {
+                $uInfo = USER::getuserbyid($link, $userList[$y]);
+                $uInfo['id'] = $userList[$y];
+                $userListInfo[] = $uInfo;
+            }
+            $chatInfo['participantList'] = $userListInfo;
+            $chatListInfo[]= $chatInfo;
+        }
+        $r['myuserid'] = $user_id;
+        $r['chatList'] = $chatListInfo;
         return $r;
     }
 
