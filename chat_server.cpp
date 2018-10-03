@@ -194,6 +194,8 @@ std::string assemble_cmd(const command& cmd) {
         buf += pack32le(cmd.chatId);
         buf += pack32le(cmd.userId);
         buf += pack64le(cmd.messageId);
+        buf += pack32le(cmd.timestamp);
+        buf += pack32le(cmd.updated);
         buf += pack16le(cmd.message.length());
         buf += cmd.message;
     }
