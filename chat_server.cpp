@@ -51,7 +51,8 @@ enum OPCODE {
     NEWMSG = 6,
     OLDMSG = 7,
     LASTSEEN = 8,
-    MYUSERID = 9
+    MYUSERID = 9,
+    JOINHIST = 10
 };
 
 struct command
@@ -343,31 +344,6 @@ public:
                             cmd.chatList = getchatlist(user_id);
                             response_str = assemble_cmd(cmd);
                             m_server.send(a.hdl, response_str,  a.msg->get_opcode());
-                            //std::vector<command> newMessages;
-                            for (int cIndex = 0; cIndex < cmd.chatList.size(); cIndex++) {
-                                if (m_roomConns.find(cmd.chatList[cIndex]) == m_roomConns.end()) {
-                                    m_roomConns[cmd.chatList[cIndex]] = con_list();
-                                }
-                                m_roomConns[cmd.chatList[cIndex]].insert(a.hdl);
-                                std::vector<uint32_t> userList = getparticipants(cmd.chatList[cIndex]);
-                                std::vector<command> roomNewMessages = getnewmessages(cmd.chatList[cIndex], user_id);
-                                if (roomNewMessages.size() > 0) {
-                                    newMessages.insert(newMessages.end(), roomNewMessages.begin(), roomNewMessages.end());
-                                }
-                                for (int index = 0; index < userList.size();index++) {
-                                    std::cout<< 'JOINED:'<<userList[index]<<std::endl;
-                                    std::string str;
-                                    str += ((char)OPCODE::JOIN);
-                                    str += pack32le(cmd.chatList[cIndex]);
-                                    str += pack32le(userList[index]);
-                                    m_server.send(a.hdl, str,  a.msg->get_opcode());
-                                }
-                            }
-                            // flush all new messages;
-                            for (int nIndex = 0; nIndex < newMessages.size(); nIndex++) {
-                                response_str = assemble_cmd(newMessages[nIndex]);
-                                m_server.send(a.hdl, response_str,  a.msg->get_opcode());
-                            }
                         }
                     }
                     else if (OPCODE::JOIN == cmd.opcode) {
@@ -391,6 +367,12 @@ public:
                             str += pack32le(userList[index]);
                             m_server.send(a.hdl, str, a.msg->get_opcode());
                         }
+                        // response with lastseen.
+                        cmd.opcode = OPCODE::LASTSEEN;
+                        cmd.messageId = this->getlastseen(cmd.chatId, cmd.userId);
+                        std::string lastseen_str =  assemble_cmd(cmd);
+                        m_server.send(a.hdl, lastseen_str,  a.msg->get_opcode());
+
                         std::vector<command> roomNewMessages = getnewmessages(cmd.chatId, cmd.userId);
                         // flush all new messages;
                         for (int nIndex = 0; nIndex < roomNewMessages.size(); nIndex++) {
@@ -400,17 +382,15 @@ public:
                     }
                     else if(OPCODE::NEWMSG == cmd.opcode) {
                         std::cout<<"NEWMSG:"<<cmd.chatId<<','<<cmd.userId<<','<<cmd.message<<std::endl;
-                        cmd.messageId = addchatmessage(cmd.chatId, cmd.userId, cmd.message);
+                        auto nmsg = addchatmessage(cmd.chatId, cmd.userId, cmd.message);
                         setlastseen(cmd.chatId, cmd.userId, cmd.messageId);
                         std::cout<<"message id"<<cmd.messageId<<std::endl;
-                        response_str = assemble_cmd(cmd);
+                        response_str = assemble_cmd(nmsg);
                         for(int i=0;i<response_str.length();i++) {
                             std::cout<<std::hex<<(uint32_t)response_str[i];
                         }
                         std::cout<<std::endl;
-                        server::message_ptr p(a.msg);
-                        p->set_payload(response_str);
-                        sendToRoom(cmd.chatId, p);
+                        sendToRoom(cmd.chatId, response_str, a.msg->get_opcode());
                     }
                     else if(OPCODE::NEWROOM == cmd.opcode) {
                         uint32_t cId = createchat(cmd.userId, cmd.userList);
@@ -451,17 +431,24 @@ protected:
         }
     }
 
-    uint64_t addchatmessage(uint32_t chat_id, uint32_t user_id, const std::string& message) {
+    command addchatmessage(uint32_t chat_id, uint32_t user_id, const std::string& message) {
         MYSQL_STMT *stmt;
-        MYSQL_BIND bind[3];
-        uint64_t newId = 0;
-        std::string sql = std::string("INSERT INTO chat_messages (chat_id, user_id, message, timestamp) VALUES (?,?,?, UNIX_TIMESTAMP())");
+        MYSQL_BIND bind[4];
+        uint32_t timestamp = time(NULL);
+        command item;
+        item.opcode = OPCODE::NEWMSG;
+        item.chatId = chat_id;
+        item.userId = user_id;
+        item.message = message;
+        item.timestamp = timestamp;
+
+        std::string sql = std::string("INSERT INTO chat_messages (chat_id, user_id, message, timestamp) VALUES (?,?,?,?)");
         std::cout<<"sql:"<<sql<<std::endl;
         if (m_connect) {
             stmt = mysql_stmt_init(m_connect);
             if(stmt == NULL) {
                 printf(mysql_error(m_connect));
-                return false;
+                return item;
             }
             mysql_stmt_prepare(stmt, sql.c_str(), sql.length());
             // bind parameters set.
@@ -473,17 +460,19 @@ protected:
             bind[2].buffer_type= MYSQL_TYPE_STRING;
             bind[2].buffer= (void*)message.c_str();
             bind[2].buffer_length= message.length();
+            bind[3].buffer_type= MYSQL_TYPE_LONG;
+            bind[3].buffer= (char*)&timestamp;
 
             mysql_stmt_bind_param(stmt, bind);
             if (!mysql_stmt_execute(stmt)) {
-                newId = (uint64_t)mysql_insert_id(m_connect);;
+                item.messageId = (uint64_t)mysql_insert_id(m_connect);;
             }
             else {
                 printf(mysql_error(m_connect));
             }
             mysql_stmt_close(stmt);
         }
-        return newId;
+        return item;
     }
 
     bool addchatuser (uint32_t chat_id, uint32_t user_id) {
