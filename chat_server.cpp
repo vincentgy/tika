@@ -54,7 +54,7 @@ enum OPCODE {
     OLDMSG = 7,
     LASTSEEN = 8,
     MYUSERID = 9,
-    JOINHIST = 10,
+    JOINRANGE = 10,
     HISTDONE = 11
 };
 
@@ -66,6 +66,7 @@ struct command
     uint32_t chatId;
     uint32_t userId;
     uint64_t messageId;
+    uint64_t messageId2;
     uint32_t count;
     uint32_t timestamp;
     uint32_t updated;
@@ -188,6 +189,12 @@ void parse_cmd(const std::string& cmdq, command& r) {
         r.chatId = unpack32le(cmdq.substr(1, 4));
         r.userId = unpack32le(cmdq.substr(5, 4));
         r.count = unpack16le(cmdq.substr(9, 2));
+    }
+    else if (OPCODE::JOINRANGE == opcode) {
+        r.chatId = unpack32le(cmdq.substr(1, 4));
+        r.userId = unpack32le(cmdq.substr(5, 4));
+        r.messageId = unpack64le(cmdq.substr(9, 8));//latest message ID
+        r.messageId2 = unpack64le(cmdq.substr(17, 8));//oldest message ID
     }
 }
 
@@ -387,13 +394,6 @@ public:
                         cmd.messageId = this->getlastseen(cmd.chatId, cmd.userId);
                         std::string lastseen_str =  assemble_cmd(cmd);
                         m_server.send(a.hdl, lastseen_str,  a.msg->get_opcode());
-
-                        std::vector<command> roomNewMessages = getnewmessages(cmd.chatId, cmd.userId);
-                        // flush all new messages;
-                        for (int nIndex = 0; nIndex < roomNewMessages.size(); nIndex++) {
-                            std::string response_str = assemble_cmd(roomNewMessages[nIndex]);
-                            m_server.send(a.hdl, response_str,  a.msg->get_opcode());
-                        }
                     }
                     else if(OPCODE::NEWMSG == cmd.opcode) {
                         std::cout<<"NEWMSG:"<<cmd.chatId<<','<<cmd.userId<<','<<cmd.message<<std::endl;
@@ -431,6 +431,15 @@ public:
                         cmd.opcode = HISTDONE;
                         response_str = assemble_cmd(cmd);
                         sendToUser(cmd.userId, response_str, a.msg->get_opcode());
+                    }
+                    else if(OPCODE::JOINRANGE == cmd.opcode) {
+                        std::vector<command> roomNewMessages = getchatnewmessages(cmd.chatId, cmd.messageId);
+                        // flush all new messages;
+                        for (int nIndex = 0; nIndex < roomNewMessages.size(); nIndex++) {
+                            std::string response_str = assemble_cmd(roomNewMessages[nIndex]);
+                            m_server.send(a.hdl, response_str,  a.msg->get_opcode());
+                        }
+                        this->m_connCursors[a.hdl][cmd.chatId] = cmd.messageId2;
                     }
             } else {
                 // undefined.
@@ -776,16 +785,14 @@ protected:
         return cmdList;
     }
 
-    std::vector<command> getnewmessages(uint32_t chat_id, uint32_t user_id) {
+    std::vector<command> getchatnewmessages(uint32_t chat_id, uint64_t end) {
         MYSQL_RES *result;
         MYSQL_ROW row;
         MYSQL_STMT *stmt;
         MYSQL_BIND bind[2];
         MYSQL_BIND bResult[6];
         bool ready = false;
-        uint64_t last_seen = getlastseen(chat_id, user_id);
         std::vector<command> cmdList;
-        std::cout<<"getnewmessages:"<<chat_id<<" "<<last_seen<<std::endl;
         std::string sql = std::string("SELECT * FROM chat_messages WHERE chat_id = ? AND id > ? ORDER BY id ASC");
         std::cout<<"sql:"<<sql<<std::endl;
         if (m_connect) {
@@ -800,7 +807,7 @@ protected:
             bind[0].buffer_type= MYSQL_TYPE_LONG;
             bind[0].buffer= (char*)&chat_id;
             bind[1].buffer_type= MYSQL_TYPE_LONGLONG;
-            bind[1].buffer= (char*)&last_seen;
+            bind[1].buffer= (char*)&end;
             mysql_stmt_bind_param(stmt, bind);
             command  result;
             result.opcode = OPCODE::NEWMSG;
