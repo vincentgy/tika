@@ -379,8 +379,8 @@ public:
                             m_userConns[cmd.userId] = con_list();
                         }
                         m_userConns[cmd.userId].insert(a.hdl);
-                        // update connection cursor.
-                        m_connCursors[a.hdl][cmd.chatId] = this->getchatlastmsgid(cmd.chatId);
+                        // update intial connection cursor.
+                        m_connCursors[a.hdl][cmd.chatId] = this->getchatlastmsgid(cmd.chatId) + 1;
                         for (int index = 0; index < userList.size();index++) {
                             std::cout<< 'JOINED:'<<userList[index]<<std::endl;
                             std::string str;
