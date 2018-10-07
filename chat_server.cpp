@@ -19,6 +19,7 @@
 #define PASSWORD "r00t"
 #define DATABASE "tikadb"
 #define MAX_SIZE  4096
+#define BYTE  unsigned char
 
 typedef websocketpp::server<websocketpp::config::asio> server;
 
@@ -101,7 +102,8 @@ uint64_t unpack64le(const std::string& x) {
     uint64_t r = 0;
 
     for (int i = 8; i--;) {
-        r = ((r << 8) >> 0) + (uint64_t)(x[i]);
+        BYTE b = (BYTE)(x[i]);
+        r = ((r << 8) >> 0) + (uint64_t)(b);
     }
 
     return r;
@@ -122,7 +124,8 @@ uint32_t unpack32le(const std::string& x) {
     uint32_t r = 0;
 
     for (int i = 4; i--;) {
-        r = ((r << 8) >> 0) + (uint32_t)(x[i]);
+        BYTE b = (BYTE)(x[i]);
+        r = ((r << 8) >> 0) + (uint32_t)(b);
     }
 
     return r;
@@ -143,7 +146,8 @@ uint16_t unpack16le(const std::string& x) {
     uint16_t r = 0;
 
     for (int i = 2; i--;) {
-        r = ((r << 8) >> 0) + (uint16_t)(x[i]);
+        BYTE b = (BYTE)(x[i]);
+        r = ((r << 8) >> 0) + (uint16_t)(b);
     }
 
     return r;
