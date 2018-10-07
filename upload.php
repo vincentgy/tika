@@ -22,7 +22,10 @@ else if ($category === 'p') {
 else if ($category === 'c') {
 	$folder = 'companies/';
 }
-
+else if ($category === 'ch') {
+	$folder = 'chats/'.$id . '/';
+	$filename = uniqid('TMX', true);
+}
 if (isset($_FILES["fileToUpload"])) {
 	$file = $_FILES["fileToUpload"]['tmp_name'];
 	$ext = pathinfo($_FILES["fileToUpload"]['name'], PATHINFO_EXTENSION);
