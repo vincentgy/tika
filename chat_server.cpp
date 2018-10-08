@@ -457,9 +457,11 @@ public:
                     }
                     else if(OPCODE::TRUNCATE == cmd.opcode) {
                         uint64_t dMessageId = this->truncatechat(cmd.chatId, cmd.userId);
-                        cmd.messageId = dMessageId;
-                        response_str = assemble_cmd(cmd);
-                        sendToRoom(cmd.chatId, response_str, a.msg->get_opcode());
+                        if (dMessageId > 0) {
+                            cmd.messageId = dMessageId;
+                            response_str = assemble_cmd(cmd);
+                            sendToRoom(cmd.chatId, response_str, a.msg->get_opcode());
+                        }
                     }
             } else {
                 // undefined.
