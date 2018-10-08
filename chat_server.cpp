@@ -56,7 +56,8 @@ enum OPCODE {
     LASTSEEN = 8,
     MYUSERID = 9,
     JOINRANGE = 10,
-    HISTDONE = 11
+    HISTDONE = 11,
+    TRUNCATE = 12
 };
 
 struct command
@@ -200,6 +201,10 @@ void parse_cmd(const std::string& cmdq, command& r) {
         r.messageId = unpack64le(cmdq.substr(9, 8));//latest message ID
         r.messageId2 = unpack64le(cmdq.substr(17, 8));//oldest message ID
     }
+    else if (OPCODE::TRUNCATE == opcode) {
+        r.chatId = unpack32le(cmdq.substr(1, 4));
+        r.userId = unpack32le(cmdq.substr(5, 4));
+    }
 }
 
 std::string assemble_cmd(const command& cmd) {
@@ -236,6 +241,11 @@ std::string assemble_cmd(const command& cmd) {
     else if (OPCODE::HISTDONE == cmd.opcode) {
         buf += pack32le(cmd.chatId);
         buf += pack32le(cmd.userId);
+    }
+    else if (OPCODE::TRUNCATE == cmd.opcode) {
+        buf += pack32le(cmd.chatId);
+        buf += pack32le(cmd.userId);
+        buf += pack64le(cmd.messageId);
     }
     return buf;
 }
@@ -444,6 +454,12 @@ public:
                             m_server.send(a.hdl, response_str,  a.msg->get_opcode());
                         }
                         this->m_connCursors[a.hdl][cmd.chatId] = cmd.messageId2;
+                    }
+                    else if(OPCODE::TRUNCATE == cmd.opcode) {
+                        uint64_t dMessageId = this->truncatechat(cmd.chatId, cmd.userId);
+                        cmd.messageId = dMessageId;
+                        response_str = assemble_cmd(cmd);
+                        sendToRoom(cmd.chatId, response_str, a.msg->get_opcode());
                     }
             } else {
                 // undefined.
@@ -667,6 +683,83 @@ protected:
             printf("Done.\n");
         }
         return init_data;
+    }
+
+    uint64_t truncatechat(uint32_t chat_id, uint32_t user_id) {
+        uint64_t result = 0;
+        if (checkchatuser(chat_id, user_id) == false) {
+            return result;
+        }
+        uint64_t messageId = getchatlastmsgid(chat_id);
+        MYSQL_STMT *stmt;
+        MYSQL_BIND bind[2];
+
+        std::string sql = std::string("DELETE FROM chat_messages WHERE chat_id=? AND id <=?");
+        std::cout<<"sql:"<<sql<<std::endl;
+        if (m_connect) {
+            stmt = mysql_stmt_init(m_connect);
+            if(stmt == NULL) {
+                printf(mysql_error(m_connect));
+                return false;
+            }
+            mysql_stmt_prepare(stmt, sql.c_str(), sql.length());
+            // bind parameters set.
+            memset(bind, 0, sizeof(bind));
+            bind[0].buffer_type= MYSQL_TYPE_LONG;
+            bind[0].buffer= (char*)&chat_id;
+            bind[1].buffer_type= MYSQL_TYPE_LONGLONG;
+            bind[1].buffer= (char*)&messageId;
+            mysql_stmt_bind_param(stmt, bind);
+            if (!mysql_stmt_execute(stmt)) {
+                result = messageId;
+            }
+            mysql_stmt_close(stmt);
+        }
+        return result;
+    }
+
+    bool checkchatuser(uint32_t chat_id, uint32_t user_id) {
+        MYSQL_ROW row;
+        MYSQL_STMT *stmt;
+        MYSQL_BIND bind[2];
+        MYSQL_BIND bResult[1];
+        uint64_t init_data = 0;
+        bool result = false;
+
+        std::string sql = std::string("SELECT user_id FROM chat_users WHERE chat_id = ? AND user_id = ?");
+        std::cout<<"sql:"<<sql<<std::endl;
+        if (m_connect) {
+            stmt = mysql_stmt_init(m_connect);
+            if(stmt == NULL) {
+                printf(mysql_error(m_connect));
+                return init_data;
+            }
+            mysql_stmt_prepare(stmt, sql.c_str(), sql.length());
+            // bind parameters set.
+            memset(bind, 0, sizeof(bind));
+            bind[0].buffer_type= MYSQL_TYPE_LONG;
+            bind[0].buffer= (char*)&chat_id;
+            bind[1].buffer_type= MYSQL_TYPE_LONG;
+            bind[1].buffer= (char*)&user_id;
+            mysql_stmt_bind_param(stmt, bind);
+
+            // bind result set.
+            memset(bResult, 0, sizeof(bResult));
+            bResult[0].buffer_type= MYSQL_TYPE_LONGLONG;
+            bResult[0].buffer= (char *)&init_data;
+            mysql_stmt_bind_result(stmt, bResult);
+            /* must call mysql_store_result() before we can issue any
+             * other query calls
+             */
+            mysql_stmt_execute(stmt);
+            mysql_stmt_fetch(stmt);
+            if (mysql_stmt_num_rows(stmt) == 1) {
+                result = true;
+            }
+            mysql_stmt_close(stmt);
+            printf("Done.\n");
+        }
+        return result;
     }
 
     uint64_t getlastseen(uint32_t chat_id, uint32_t user_id) {
