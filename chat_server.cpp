@@ -447,13 +447,25 @@ public:
                         sendToUser(cmd.userId, response_str, a.msg->get_opcode());
                     }
                     else if(OPCODE::JOINRANGE == cmd.opcode) {
+                        // add connection to room's connection set.
+                        if (m_roomConns.find(cmd.chatId) == m_roomConns.end()) {
+                            m_roomConns[cmd.chatId] = con_list();
+                        }
+                        m_roomConns[cmd.chatId].insert(a.hdl);
+                        // add connection to user's connection set.
+                        if (m_userConns.find(cmd.userId) == m_userConns.end()) {
+                            m_userConns[cmd.userId] = con_list();
+                        }
+                        m_userConns[cmd.userId].insert(a.hdl);
+                        // update intial connection cursor.
+                        this->m_connCursors[a.hdl][cmd.chatId] = cmd.messageId2;
+
                         std::vector<command> roomNewMessages = getchatnewmessages(cmd.chatId, cmd.messageId);
                         // flush all new messages;
                         for (int nIndex = 0; nIndex < roomNewMessages.size(); nIndex++) {
                             std::string response_str = assemble_cmd(roomNewMessages[nIndex]);
                             m_server.send(a.hdl, response_str,  a.msg->get_opcode());
                         }
-                        this->m_connCursors[a.hdl][cmd.chatId] = cmd.messageId2;
                     }
                     else if(OPCODE::TRUNCATE == cmd.opcode) {
                         uint64_t dMessageId = this->truncatechat(cmd.chatId, cmd.userId);
