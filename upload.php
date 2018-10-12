@@ -58,21 +58,25 @@ if (isset($_FILES["fileToUpload"])) {
 	$sql = false;
 	if ($category === 'u') {
 		$sql = 'UPDATE users SET avatar = ? WHERE id = ?';
+		if($stmt = mysqli_prepare($link, $sql)) {
+		    mysqli_stmt_bind_param($stmt, "ss", $url, $id);
+		    if(mysqli_stmt_execute($stmt)){
+		        $response['ret'] = 0;
+		        $response['url'] = $url;
+		    }
+		    else {
+		        $response['ret'] = 1;
+		    }
+		    mysqli_stmt_close($stmt);
+		}
+		else {
+			$response['ret'] = 1;
+		    $response['error'] = mysqli_error($link);
+		}
 	}
-	if($stmt = mysqli_prepare($link, $sql)) {
-	    mysqli_stmt_bind_param($stmt, "ss", $url, $id);
-	    if(mysqli_stmt_execute($stmt)){
-	        $response['ret'] = 0;
-	        $response['url'] = $url;
-	    }
-	    else {
-	        $response['ret'] = 1;
-	    }
-	    mysqli_stmt_close($stmt);
-	}
-	else {
-		$response['ret'] = 1;
-	    $response['error'] = mysqli_error($link);
+	else if ($category === 'ch') {
+		$response['ret'] = 0;
+		$response['url'] = $url;
 	}
 }
 else {
