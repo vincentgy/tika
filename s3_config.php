@@ -20,8 +20,8 @@
 	use Aws\S3\Exception\S3Exception;
 	// AWS Info
 	$bucketName = 'timix';
-	$IAM_KEY = 'AKIAIWSQK37HQKBIO7KA';
-	$IAM_SECRET = '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';
+	$IAM_KEY = 'AKIAJDBSO4NHC5NBLTEQ';
+	$IAM_SECRET = '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';
 	// Connect to AWS
 	try {
 		// You may need to change the region. It will say in the URL when the bucket is open

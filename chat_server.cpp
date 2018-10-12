@@ -394,7 +394,7 @@ public:
                         }
                         m_userConns[cmd.userId].insert(a.hdl);
                         // update intial connection cursor.
-                        m_connCursors[a.hdl][cmd.chatId] = this->getchatlastmsgid(cmd.chatId) + 1;
+                        m_connCursors[a.hdl][cmd.userId][cmd.chatId] = this->getchatlastmsgid(cmd.chatId) + 1;
                         for (int index = 0; index < userList.size();index++) {
                             std::cout<< 'JOINED:'<<userList[index]<<std::endl;
                             std::string str;
@@ -435,12 +435,12 @@ public:
                         sendToUser(cmd.userId, response_str, a.msg->get_opcode());
                     }
                     else if(OPCODE::HIST == cmd.opcode) {
-                        std::vector<command> roomMessages = this->getchatmessages(cmd.chatId, this->m_connCursors[a.hdl][cmd.chatId], cmd.count);
+                        std::vector<command> roomMessages = this->getchatmessages(cmd.chatId, this->m_connCursors[a.hdl][cmd.userId][cmd.chatId], cmd.count);
                         // flush all new messages;
                         for (int nIndex = 0; nIndex < roomMessages.size(); nIndex++) {
                             std::string response_str = assemble_cmd(roomMessages[nIndex]);
                             m_server.send(a.hdl, response_str,  a.msg->get_opcode());
-                            this->m_connCursors[a.hdl][cmd.chatId] = roomMessages[nIndex].messageId;
+                            this->m_connCursors[a.hdl][cmd.userId][cmd.chatId] = roomMessages[nIndex].messageId;
                         }
                         cmd.opcode = HISTDONE;
                         response_str = assemble_cmd(cmd);
@@ -458,7 +458,7 @@ public:
                         }
                         m_userConns[cmd.userId].insert(a.hdl);
                         // update intial connection cursor.
-                        this->m_connCursors[a.hdl][cmd.chatId] = cmd.messageId2;
+                        this->m_connCursors[a.hdl][cmd.userId][cmd.chatId] = cmd.messageId2;
 
                         std::vector<command> roomNewMessages = getchatnewmessages(cmd.chatId, cmd.messageId);
                         // flush all new messages;
@@ -1081,7 +1081,8 @@ protected:
 private:
     typedef std::set<connection_hdl,std::owner_less<connection_hdl> > con_list;
     typedef std::unordered_map<uint32_t,uint64_t> chat_msg_map;
-    typedef std::map<connection_hdl, chat_msg_map, std::owner_less<connection_hdl> > con_map;
+    typedef std::unordered_map<uint32_t,chat_msg_map> chat_user_msg_map;
+    typedef std::map<connection_hdl, chat_user_msg_map, std::owner_less<connection_hdl> > con_map;
     server m_server;
     con_list m_connections;
     std::unordered_map<uint32_t, con_list> m_roomConns;
