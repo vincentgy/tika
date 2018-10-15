@@ -408,12 +408,12 @@ public:
                         cmd.messageId = this->getlastseen(cmd.chatId, cmd.userId);
                         std::string lastseen_str =  assemble_cmd(cmd);
                         m_server.send(a.hdl, lastseen_str,  a.msg->get_opcode());
-                        auto roomNewMessages = this->getchatnewmessages(cmd.chatId, cmd.messageId);
+                        /*auto roomNewMessages = this->getchatnewmessages(cmd.chatId, cmd.messageId);
                         // flush all new messages;
                         for (int nIndex = 0; nIndex < roomNewMessages.size(); nIndex++) {
                             std::string response_str = assemble_cmd(roomNewMessages[nIndex]);
                             m_server.send(a.hdl, response_str,  a.msg->get_opcode());
-                        }
+                        }*/
                     }
                     else if(OPCODE::NEWMSG == cmd.opcode) {
                         std::cout<<"NEWMSG:"<<cmd.chatId<<','<<cmd.userId<<','<<cmd.message<<std::endl;
