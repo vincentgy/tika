@@ -216,6 +216,10 @@ class JOB
             }
         }
         $sql .= $where;
+        if (isset($query['pageSize']) && isset($query['currentPage'])) {
+            $total = $query['currentPage'] * $query['pageSize'];
+            $sql .= ' LIMI '. $total . ','. $query['pageSize'];
+        }
         return $sql;
     }
 
