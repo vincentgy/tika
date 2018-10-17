@@ -328,7 +328,7 @@ if(isset($req['a'])) {
                 $response['ret'] = -2;
             }
 
-            $r = APPLICATION::updateexperience($link, $req['p']);
+            $r = APPLICATION::getapplicationsbyjob($link, $req['p']);
             if ($r !== false) {
                 $response['ret'] = 0;
                 $response['data'] = $r;
