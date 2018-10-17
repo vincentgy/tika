@@ -186,15 +186,13 @@ if(isset($req['a'])) {
             }
         break;
         case 'ap':// apply position
-            if (isset($req['p']) === false ||
-                isset($req['u']) === false
-                ) {
+            if (isset($req['p']) === false) {
                 $response['ret'] = -2;
             }
-            else if (APPLICATION::checkapplication($link, $req['u'], $req['p']) === true) {
+            else if (APPLICATION::checkapplication($link, $user_id, $req['p']) === true) {
                 $response['ret'] = 1;
             } else {
-                $r = APPLICATION::addapplication($link, $req['u'], $req['p']);
+                $r = APPLICATION::addapplication($link, $user_id, $req['p']);
                 if ($r !== false) {
                     $response['ret'] = 0;
                 }
