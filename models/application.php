@@ -57,7 +57,7 @@ class APPLICATION
     }
 
     static function countapplicationsbyjob($link, $positionid) {
-        $sql = "SELECT COUNT(*) AS count applications WHERE position_id = ?";
+        $sql = "SELECT COUNT(*) AS count FROM applications WHERE position_id = ?";
         $count = 0;
 
         if($stmt = mysqli_prepare($link, $sql)) {
