@@ -1,6 +1,7 @@
 <?php
 include_once("geometry.php");
 include_once("user.php");
+include_once("application.php");
 
 class JOB
 {
@@ -94,6 +95,28 @@ class JOB
         return $rows;
     }
 
+    static function deletejobcategory($link, $job_id, $category_id) {
+        $r = false;
+        $sql = "INSERT INTO position_category (position_id, category_id) VALUES (?,?)";
+
+        if($stmt = mysqli_prepare($link, $sql)) {
+            mysqli_stmt_bind_param($stmt, "ii", $job_id, $category_id);
+            if(mysqli_stmt_execute($stmt)){
+                $r = true;
+            }
+            else {
+                $r = false;
+            }
+            mysqli_stmt_close($stmt);
+        }
+        else {
+            echo("Error description: " . mysqli_error($link));
+            $r = false;
+        }
+
+        return $r;
+    }
+
     static function addjobcategory($link, $job_id, $category_id) {
         $r = false;
         $sql = "INSERT INTO position_category (position_id, category_id) VALUES (?,?)";
@@ -174,6 +197,55 @@ class JOB
         return $rows;
     }
 
+    static function generateupdatesql($update) {
+        $sql = 'UPDATE positions ';
+        $set = '';
+        $where = ' WHERE id='.$update['position_id'];
+        foreach ($update as $key => $val) {
+            switch ($key) {
+                case 'title':
+                    $set .= ' SET title ='.$val.',';
+                break;
+                case 'company':
+                    $set .= ' SET company ='.$val.',';
+                break;
+                case 'description':
+                    $set .= ' SET description ='.$val.',';
+                break;
+                case 'type':
+                    $set .= ' SET type = '.$val.',';
+                break;
+                case 'pay_type':
+                    $set .= ' SET pay_type = '.$val.',';
+                break;
+                case 'minimum_pay':
+                    $set .= ' SET minimum_pay = '.$val.',';
+                break;
+                case 'maximum_pay':
+                    $set .= ' SET maximum_pay = '.$val.',';
+                break;
+                case 'region_id':
+                    $set .= ' SET region_id = '.$val.',';
+                break;
+                case 'district_id':
+                    $set .= ' SET district_id ='.$val.',';
+                break;
+                case 'location':
+                    $set .= ' SET location ='.$val.',';
+                break;
+            }
+        }
+        if (strlen($set) > 0)
+        {
+            $set = substr($set, 0, -1);
+            $sql .= $set;
+            $sql .= $where;
+        } else {
+            $sql = '';
+        }
+        return $sql;
+    }
+
     static function generatesql($query) {
         $sql = 'SELECT * FROM positions JOIN position_category on positions.id = position_category.position_id';
         $where = ' WHERE 1';
@@ -223,7 +295,6 @@ class JOB
         return $sql;
     }
 
-
     static function searchjobs($link, $query, $location) {
         $rows = [];
         $sql = JOB::generatesql($query);
@@ -267,6 +338,7 @@ class JOB
 
                 while ($row=mysqli_fetch_assoc($result)) {
                     $row['categories'] = JOB::getcategoriesbyposition($link, $row['id']);
+                    $row['application_number'] = APPLICATION::countapplicationsbyjob($link, $row['id']);
                     $rows[] = $row;
                 }
                 // Free result set

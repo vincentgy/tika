@@ -56,6 +56,28 @@ class APPLICATION
         return $r;
     }
 
+    static function countapplicationsbyjob($link, $positionid) {
+        $sql = "SELECT COUNT(*) AS count applications WHERE position_id = ?";
+        $count = 0;
+
+        if($stmt = mysqli_prepare($link, $sql)) {
+            // Bind variables to the prepared statement as parameters
+            mysqli_stmt_bind_param($stmt, "i", $positionid);
+            if(mysqli_stmt_execute($stmt)) {
+                $result = mysqli_stmt_get_result($stmt);
+                if (mysqli_num_rows($result) == 1) {
+                    if ($row = mysqli_fetch_assoc($result)) {
+                        $count = $row['count'];
+                    }
+                }
+                // Free result set
+                mysqli_free_result($result);
+            }
+            mysqli_stmt_close($stmt);
+        }
+        return $count;
+    }
+
     static function getapplicationsbyjob($link, $positionid) {
         $sql = "SELECT user_id, timestamp FROM applications WHERE position_id = ?";
         $rows = [];
