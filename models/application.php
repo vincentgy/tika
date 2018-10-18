@@ -1,5 +1,6 @@
 <?php
 include_once "user.php";
+include_once "profile.php";
 
 class APPLICATION
 {
@@ -67,6 +68,8 @@ class APPLICATION
 
                 while ($row=mysqli_fetch_assoc($result)) {
                     $r = USER::getuserbyid($link, $row['user_id']);
+                    $r['qualifications'] = PROFILE::getqualificationsbyuser($link, $row['user_id']);
+                    $r['experiences'] = PROFILE::getexperiencesbyuser($link, $row['user_id']);
                     $r['timestamp'] = $row['timestamp'];
                     $rows[] = $r;
                 }
