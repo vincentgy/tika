@@ -16,14 +16,13 @@ class APPLICATION
                 mysqli_stmt_store_result($stmt);
 
                 if(mysqli_stmt_num_rows($stmt) == 1) {
-                    mysqli_stmt_close($stmt);
                     $r = true;
                 }
             }
             else {
                 echo("Error description: " . mysqli_error($link));
-                mysqli_stmt_close($stmt);
             }
+            mysqli_stmt_close($stmt);
         }
 
         return $r;

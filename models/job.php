@@ -95,7 +95,7 @@ class JOB
         return $rows;
     }
 
-    static function deletejobcategory($link, $job_id, $category_id) {
+    static function addjobcategory($link, $job_id, $category_id) {
         $r = false;
         $sql = "INSERT INTO position_category (position_id, category_id) VALUES (?,?)";
 
@@ -117,12 +117,12 @@ class JOB
         return $r;
     }
 
-    static function addjobcategory($link, $job_id, $category_id) {
+    static function deletejobcategory($link, $job_id) {
         $r = false;
-        $sql = "INSERT INTO position_category (position_id, category_id) VALUES (?,?)";
+        $sql = "DELETE FROM position_category WHERE position_id = ?";
 
         if($stmt = mysqli_prepare($link, $sql)) {
-            mysqli_stmt_bind_param($stmt, "ii", $job_id, $category_id);
+            mysqli_stmt_bind_param($stmt, "i", $job_id);
             if(mysqli_stmt_execute($stmt)){
                 $r = true;
             }
@@ -176,6 +176,27 @@ class JOB
         return $r;
     }
 
+    static function updatejob($link, $update) {
+        $r = false;
+        if (isset($update['position_id'])) {
+            $sql = JOB::generateupdatesql($update);
+             error_log(print_r($sql, true));
+            if($stmt = mysqli_prepare($link, $sql)) {
+                if(mysqli_stmt_execute($stmt)) {
+
+                }
+                // Free result set
+                if (isset($update['category_ids'])) {
+                    JOB::deletejobcategory($link, $update['position_id']);
+                    for ($i = 0; $i < count($update['position_id']); $i++) {
+                        JOB::addjobcategory($link, $update['position_id'], $update['position_id'][$i]);
+                    }
+                }
+                mysqli_stmt_close($stmt);
+            }
+        }
+    }
+
     static function getcategoriesbyposition($link, $position) {
         $sql = "SELECT * FROM position_category WHERE position_id = ?";
         $rows = [];
@@ -192,6 +213,7 @@ class JOB
                 // Free result set
                 mysqli_free_result($result);
             }
+            mysqli_stmt_close($stmt);
         }
 
         return $rows;
@@ -320,11 +342,37 @@ class JOB
                 }
                 // Free result set
                 mysqli_free_result($result);
+                mysqli_stmt_close($stmt);
             }
+
         }
         error_log(print_r($rows, true));
         return $rows;
     }
+
+    // search jobs posted by a given user.
+    static function checkowner($link, $position_id, $user_id) {
+        $sql = "SELECT * FROM positions WHERE id = ? AND user_id = ?";
+        $r = false;
+
+        if($stmt = mysqli_prepare($link, $sql)) {
+            // Bind variables to the prepared statement as parameters
+            mysqli_stmt_bind_param($stmt, "ii", $position_id, $user_id);
+            if(mysqli_stmt_execute($stmt)) {
+                $result = mysqli_stmt_get_result($stmt);
+
+                if(mysqli_stmt_num_rows($stmt) == 1) {
+                    $r = true;
+                }
+                // Free result set
+                mysqli_free_result($result);
+            }
+            mysqli_stmt_close($stmt);
+        }
+        error_log(print_r($rows, true));
+        return $r;
+    }
+
     // search jobs posted by a given user.
     static function searchjobsbyuser($link, $userid) {
         $sql = "SELECT * FROM positions WHERE user_id = ?";
@@ -344,6 +392,7 @@ class JOB
                 // Free result set
                 mysqli_free_result($result);
             }
+            mysqli_stmt_close($stmt);
         }
         error_log(print_r($rows, true));
         return $rows;
@@ -368,6 +417,7 @@ class JOB
                 // Free result set
                 mysqli_free_result($result);
             }
+            mysqli_stmt_close($stmt);
         }
         error_log(print_r($rows, true));
         return $rows;

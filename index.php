@@ -170,6 +170,24 @@ if(isset($req['a'])) {
                 }
             }
         break;
+        case 'uj':// search job
+            if (isset($req['update']) === false) {
+                $response['ret'] = -2;
+            }
+            else {
+                if (JOB::checkowner($link, $req['update']['position_id'], $user_id) == true) {
+                    $r = JOB::updatejob($link, $req['update']);
+                    if ($r !== false) {
+                        $response['ret'] = 0;
+                    }
+                    else {
+                        $response['ret'] = 1;
+                    }
+                } else {
+                    $response['ret'] = 1;
+                }
+            }
+        break;
         case 'gpl':// search job
             $u = $user_id;
             if (isset($req['user_id']) !== false) {
